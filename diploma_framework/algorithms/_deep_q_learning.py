@@ -8,7 +8,7 @@ import torch.optim as optim
 
 from diploma_framework.evaluation import test_env
 
-class DeepQLearning():
+class DQN():
 
     """
     Implements Deep Q-Learning algorithm
