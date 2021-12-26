@@ -25,9 +25,8 @@ def test_env(env : Union[object, str],
     total_reward = 0
     while not done:
         state = torch.FloatTensor(state).unsqueeze(0)
-        dist, _ = model(state)
-        dist = torch.distributions.Categorical(logits=dist)
-        next_state, reward, done, _ = env.step(dist.sample().cpu().numpy()[0])
+        action = model.infer_action(state)
+        next_state, reward, done, _ = env.step(action)
         state = next_state
         if vis: env.render()
         total_reward += reward
