@@ -41,6 +41,7 @@ class PPO():
 
     def run(self, 
             eval_window : int = 1000,
+            n_evaluations : int = 10,
             early_stopping : bool = True) -> list :
 
         """
@@ -88,7 +89,7 @@ class PPO():
                 state = next_state
                 frame_idx += 1
                 if frame_idx % eval_window == 0:
-                    test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(10)])
+                    test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
                     test_rewards.append(test_reward)
                     print(f'Frame : {frame_idx} - Test reward : {test_reward}')
                     if test_reward > 195.2 and early_stopping: early_stop = True
