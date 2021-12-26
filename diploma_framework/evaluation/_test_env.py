@@ -3,7 +3,7 @@ from typing import Union
 import torch, gym, copy
 import torch.nn as nn
 
-
+@torch.inference_mode()
 def test_env(env : Union[object, str],
              model : nn.Module,
              vis : bool = False) -> float :
