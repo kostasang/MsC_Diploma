@@ -5,7 +5,6 @@ import torch.nn as nn
 import numpy as np
 
 from typing import Union
-from gym_duckietown.envs import DuckietownEnv
 from diploma_framework.evaluation import test_env
 
 
