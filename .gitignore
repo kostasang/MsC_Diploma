@@ -3,7 +3,8 @@ models/
 PPO/
 .vscode/
 
-experiment.py
+experiment_small.py
+experiment_big.py
 models.py
 
 test.py
