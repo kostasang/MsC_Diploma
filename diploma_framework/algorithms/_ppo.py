@@ -23,7 +23,9 @@ class PPO():
                  epochs : int = 4,
                  max_frames  : int = 150_000,
                  num_steps : int = 100,
-                 clip_param : float = 0.2
+                 clip_param : float = 0.2,
+                 gamma : float = 0.99,
+                 lamb : float = 1
                 ):
 
         if isinstance(environment, str):
@@ -38,6 +40,8 @@ class PPO():
         self.max_frames = max_frames
         self.num_steps = num_steps
         self.clip_param = clip_param
+        self.gamma = gamma
+        self.lamb = lamb
 
     def run(self, 
             eval_window : int = 1000,
@@ -116,9 +120,7 @@ class PPO():
                     next_value : float,
                     rewards : list,
                     masks : list,
-                    values : list,
-                    gamma : float = 0.99,
-                    lamb : float = 1) -> list :
+                    values : list) -> list :
 
         """
         Calculates return at each time step. Uses delta presented in PPO paper.
@@ -130,8 +132,8 @@ class PPO():
         returns = []
 
         for i in reversed(range(len(rewards))):
-            delta = rewards[i] + gamma * values[i + 1] * masks[i] - values[i]
-            gae = delta + gamma * lamb * masks[i] * gae
+            delta = rewards[i] + self.gamma * values[i + 1] * masks[i] - values[i]
+            gae = delta + self.gamma * self.lamb * masks[i] * gae
             returns.insert(0, gae + values[i])
 
         return returns
