@@ -1,12 +1,13 @@
 from typing import Union
 from gym_duckietown.envs import DuckietownEnv
 
-import torch, gym
+import torch, gym, copy
 import torch.nn as nn
 
 
 def test_env(env : Union[DuckietownEnv, str],
-             model : nn.Module, vis : bool = False) -> float :
+             model : nn.Module,
+             vis : bool = False) -> float :
 
     """
     Used for testing the so far trained model. It calculates the total reward 
@@ -16,6 +17,8 @@ def test_env(env : Union[DuckietownEnv, str],
 
     if isinstance(env, str):
         env = gym.make(env)
+    else:
+        env = copy.deepcopy(env)
     state = env.reset()
     if vis: env.render()
     done = False
