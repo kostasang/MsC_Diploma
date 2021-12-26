@@ -1,5 +1,4 @@
 from typing import Union
-from gym_duckietown.envs import DuckietownEnv
 
 import torch, gym, copy
 import torch.nn as nn
