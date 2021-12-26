@@ -5,7 +5,7 @@ import torch, gym, copy
 import torch.nn as nn
 
 
-def test_env(env : Union[DuckietownEnv, str],
+def test_env(env : Union[object, str],
              model : nn.Module,
              vis : bool = False) -> float :
 
