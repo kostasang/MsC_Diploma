@@ -39,11 +39,13 @@ class PPO():
         self.num_steps = num_steps
         self.clip_param = clip_param
 
-    def run(self) -> list :
+    def run(self, eval_window=1000) -> list :
 
         """
         Run the PPO algorithm with hyperparameters specified in arguments.
-        Returns list of test rewards throughout the agent's training loop
+        Returns list of test rewards throughout the agent's training loop.
+
+        eval_window : number of frames between each evaluation
 
         """
 
@@ -83,7 +85,7 @@ class PPO():
                 
                 state = next_state
                 frame_idx += 1
-                if frame_idx % 1000 == 0:
+                if frame_idx % eval_window == 0:
                     test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(10)])
                     test_rewards.append(test_reward)
                     print(f'Frame : {frame_idx} - Test reward : {test_reward}')
