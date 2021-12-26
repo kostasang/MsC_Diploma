@@ -39,7 +39,9 @@ class PPO():
         self.num_steps = num_steps
         self.clip_param = clip_param
 
-    def run(self, eval_window=1000) -> list :
+    def run(self, 
+            eval_window : int = 1000,
+            early_stopping : bool = True) -> list :
 
         """
         Run the PPO algorithm with hyperparameters specified in arguments.
@@ -89,7 +91,7 @@ class PPO():
                     test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(10)])
                     test_rewards.append(test_reward)
                     print(f'Frame : {frame_idx} - Test reward : {test_reward}')
-                    if test_reward > 195.2 : early_stop = True
+                    if test_reward > 195.2 and early_stopping: early_stop = True
 
                 if done: break
 
