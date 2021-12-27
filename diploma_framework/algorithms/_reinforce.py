@@ -83,7 +83,8 @@ class Reinforce():
                 # Get batches
                 returns_batch = torch.Tensor([r for (s,a,r) in transitions]).flip(dims=(0,))
                 returns_batch /= returns_batch.max()
-                state_batch = torch.Tensor([s for (s,a,r) in transitions])
+                # List of numpy arrays to numpy and hen to Tensor for performance boost
+                state_batch = torch.Tensor(np.asarray([s for (s,a,r) in transitions]))
                 action_batch = torch.Tensor([a for (s,a,r) in transitions])
                 pred_batch = self.model(state_batch)
                 prob_batch = pred_batch.gather(dim=1, index=action_batch.long().view(-1,1)).squeeze()
