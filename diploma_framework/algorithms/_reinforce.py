@@ -1,7 +1,6 @@
-import torch, gym, copy, math, random
+import torch, gym
 import numpy as np
 
-from collections import deque
 from typing import Union
 import torch.nn as nn
 import torch.optim as optim
