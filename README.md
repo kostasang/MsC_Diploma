@@ -2,6 +2,9 @@
 
 As part of my MsC's thesis, a framework that implements Deep Reinforcement Learning algorithms (DQN, REINFORCE, A3C, PPO) has been developed. Its goal is to enable fast experimentation with different neural network models and different environments without the need of re-implementing the code for each deep reinforcement learning algorithm all over again. The framework is build on Pytorch and any environment following the OpenAI gym API paradigm can be used.
 
+[DQN](###diploma_framework.algorithms.DQN)  
+[REINFORCE](###diploma_framework.algorithms.Reinforce) 
+
 ## Installation 
 
 Run the following in order to use the framework:
@@ -59,3 +62,91 @@ rewards = ppo.run(early_stopping=False)
 ```
 
 ## Documentation
+
+In order to create a model that is usable from the the framework, the model object must implement two methods, `infer_action()` and `infer_all()`. Each method should return the following :
+
+* `infer_action()` : Return the plain action that the model performs given the state. The returned action must be compatible with `env.step()` method.
+
+* `infer_all()` : Return every usefull information from the model. For example, a Q-network's `infer_all()` method should return `q_value` and `action` while an Actor-Critic model's `infer_all()` method should return `action_probs`, `action` and `value`. In order for the model to return the action, sampling from the probabilities calculated by the model is performer inside `infer_all()` method. This way, the framework can still operate on continious action spaces without the need to change the algorithms.
+
+More specifically, for every implemented algorithm the following documentation is provided:
+
+
+
+### `diploma_framework.algorithms.DQN` :
+    
+* Parameters :
+
+    * environment : str or object 
+
+        Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+    
+    * model : pytorch model
+
+        Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `q_value`, `action` and `infer_action()` must return `action`.
+
+    * sync_freq : int, default = 1000
+
+        Number of episodes after which Q-network's parameters will be copied to target Q-network.
+
+    * lr : float, default = 1e-03 
+
+        Learning rate used by the optimizer when performing gradient descent.
+
+    * memory_size : int, default = 2000
+
+        Size of experience replay buffer
+    
+    * batch_size : int, default = 128
+
+        Batch size used in the optimization process.
+
+    * max_frames : int, default = 150000
+
+        Maximum number of frames seen during the agent's training.
+    
+    * epsilon_start : float, default = 1.0
+
+        Initial probability of exploration.
+
+    * epsilon_end : float, default = 0.0
+
+        Terminal probability of exploration. Probability will not be reduced bellow this threshold.
+
+    * epsilon_decay : int, default = 250
+
+        Exploration probability decay parameter. The higher the value, the faster the decay.
+
+    * gamma : float , default = 0.9
+
+        Discount factor for feature rewards.
+
+* Methods : 
+
+    * run(): 
+
+        * Parameters :
+        
+            - eval_window : int, default = 1000
+
+            Number of frames between each evaluation.
+
+            - n_evaluations : int, default = 10
+
+                Number of evaluation runs perform at each evaluation step. 
+
+            - early_stopping : bool, default = True
+
+                Whether the training is terminated upon the reward_threshold is achieved.
+
+            - reward_threshold : float, default = 197.5
+
+                The reward threshold above which the training is terminated.
+        
+        * Returns :
+
+            - test_rewards : list 
+
+                List of calculated averag rewards at each evaluation step.
+
+
