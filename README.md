@@ -2,7 +2,7 @@
 
 As part of my MsC's thesis, a framework that implements Deep Reinforcement Learning algorithms (DQN, REINFORCE, A3C, PPO) has been developed. Its goal is to enable fast experimentation with different neural network models and different environments without the need of re-implementing the code for each deep reinforcement learning algorithm all over again. The framework is build on Pytorch and any environment following the OpenAI gym API paradigm can be used.
 
-[DQN](###diploma_framework.algorithms.DQN)  
+[DQN](###`diploma_framework.algorithms.DQN`)  
 [REINFORCE](###diploma_framework.algorithms.Reinforce) 
 
 ## Installation 
@@ -77,75 +77,75 @@ More specifically, for every implemented algorithm the following documentation i
     
 * Parameters :
 
-    * environment : str or object 
+    * `environment` : str or object 
 
         Either the name of an gym environment or an environment object exposing the same API as openAI gym.
     
-    * model : pytorch model
+    * `model` : pytorch model
 
         Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `q_value`, `action` and `infer_action()` must return `action`.
 
-    * sync_freq : int, default = 1000
+    * `sync_freq` : int, default = 1000
 
         Number of episodes after which Q-network's parameters will be copied to target Q-network.
 
-    * lr : float, default = 1e-03 
+    * `lr` : float, default = 1e-03 
 
         Learning rate used by the optimizer when performing gradient descent.
 
-    * memory_size : int, default = 2000
+    * `memory_size` : int, default = 2000
 
         Size of experience replay buffer
     
-    * batch_size : int, default = 128
+    * `batch_size` : int, default = 128
 
         Batch size used in the optimization process.
 
-    * max_frames : int, default = 150000
+    * `max_frames` : int, default = 150000
 
         Maximum number of frames seen during the agent's training.
     
-    * epsilon_start : float, default = 1.0
+    * `epsilon_start` : float, default = 1.0
 
         Initial probability of exploration.
 
-    * epsilon_end : float, default = 0.0
+    * `epsilon_end` : float, default = 0.0
 
         Terminal probability of exploration. Probability will not be reduced bellow this threshold.
 
-    * epsilon_decay : int, default = 250
+    * `epsilon_decay` : int, default = 250
 
         Exploration probability decay parameter. The higher the value, the faster the decay.
 
-    * gamma : float , default = 0.9
+    * `gamma` : float , default = 0.9
 
         Discount factor for feature rewards.
 
 * Methods : 
 
-    * run(): 
+    * `run()`: 
 
         * Parameters :
         
-            - eval_window : int, default = 1000
+            - `eval_window` : int, default = 1000
 
             Number of frames between each evaluation.
 
-            - n_evaluations : int, default = 10
+            - `n_evaluations` : int, default = 10
 
                 Number of evaluation runs perform at each evaluation step. 
 
-            - early_stopping : bool, default = True
+            - `early_stopping` : bool, default = True
 
                 Whether the training is terminated upon the reward_threshold is achieved.
 
-            - reward_threshold : float, default = 197.5
+            - `reward_threshold` : float, default = 197.5
 
                 The reward threshold above which the training is terminated.
         
         * Returns :
 
-            - test_rewards : list 
+            - `test_rewards` : list 
 
                 List of calculated averag rewards at each evaluation step.
 
