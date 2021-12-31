@@ -290,6 +290,8 @@ In order to create a model that is usable from the the framework, the model obje
             List of calculated average rewards at each evaluation step.
 </details>
 
+<a name="ppo"></a>
+
 ### `diploma_framework.algorithms.PPO` :
 
 <details>
