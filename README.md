@@ -2,8 +2,9 @@
 
 As part of my MsC's thesis, a framework that implements Deep Reinforcement Learning algorithms (DQN, REINFORCE, A3C, PPO) has been developed. Its goal is to enable fast experimentation with different neural network models and different environments without the need of re-implementing the code for each deep reinforcement learning algorithm all over again. The framework is build on Pytorch and any environment following the OpenAI gym API paradigm can be used.
 
-[DQN](###`diploma_framework.algorithms.DQN`)  
-[REINFORCE](###diploma_framework.algorithms.Reinforce) 
+
+[DQN](#dqn)  
+[REINFORCE](#reinforce) 
 
 ## Installation 
 
@@ -71,8 +72,7 @@ In order to create a model that is usable from the the framework, the model obje
 
 More specifically, for every implemented algorithm the following documentation is provided:
 
-
-
+<a name="dqn"></a>
 ### `diploma_framework.algorithms.DQN` :
     
 * Parameters :
