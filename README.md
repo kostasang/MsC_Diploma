@@ -288,6 +288,16 @@ In order to create a model that is usable from the the framework, the model obje
         - `test_rewards` : list 
 
             List of calculated average rewards at each evaluation step.
+
+        - `actor_loss` : list
+
+            List of actor losses calculated by one worker during the agent's training.
+
+        - `critic_loss` : list
+
+            List of critic losses calculated by one worker during the agent's training.
+
+
 </details>
 
 <a name="ppo"></a>
