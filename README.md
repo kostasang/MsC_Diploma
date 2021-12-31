@@ -20,7 +20,10 @@ In the following code section, an example for running PPO algorithm on CartPole 
 
 ```python
 from diploma_framework.algorithms import PPO
-import gym
+import gym, torch
+import torch.nn as nn
+from torch.nn import functional as F 
+
 
 class ActorCritic(nn.Module):
     
