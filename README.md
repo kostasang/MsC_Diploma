@@ -76,135 +76,294 @@ In order to create a model that is usable from the the framework, the model obje
 
 <a name="dqn"></a>
 ### `diploma_framework.algorithms.DQN` :
+
+<details>
+<summary>Parameters</summary>
+
+* `environment` : str or object 
+
+    Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+
+* `model` : pytorch model
+
+    Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `q_value`, `action` and `infer_action()` must return `action`.
+
+* `sync_freq` : int, default = 1000
+
+    Number of episodes after which Q-network's parameters will be copied to target Q-network.
+
+* `lr` : float, default = 1e-03 
+
+    Learning rate used by the optimizer when performing gradient descent.
+
+* `memory_size` : int, default = 2000
+
+    Size of experience replay buffer
+
+* `batch_size` : int, default = 128
+
+    Batch size used in the optimization process.
+
+* `max_frames` : int, default = 150000
+
+    Maximum number of frames seen during the agent's training.
+
+* `epsilon_start` : float, default = 1.0
+
+    Initial probability of exploration.
+
+* `epsilon_end` : float, default = 0.0
+
+    Terminal probability of exploration. Probability will not be reduced bellow this threshold.
+
+* `epsilon_decay` : int, default = 250
+
+    Exploration probability decay parameter. The higher the value, the faster the decay.
+
+* `gamma` : float , default = 0.9
+
+    Discount factor for future rewards.
+</details>
+
+<details>
+<summary>Methods</summary>
+
+* `run()`: 
+
+    * Parameters :
     
-* Parameters :
+        - `eval_window` : int, default = 1000
 
-    * `environment` : str or object 
+        Number of frames between each evaluation.
 
-        Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+        - `n_evaluations` : int, default = 10
+
+            Number of evaluation runs perform at each evaluation step. 
+
+        - `early_stopping` : bool, default = True
+
+            Whether the training is terminated upon the reward_threshold is achieved.
+
+        - `reward_threshold` : float, default = 197.5
+
+            The reward threshold above which the training is terminated.
     
-    * `model` : pytorch model
+    * Returns :
 
-        Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `q_value`, `action` and `infer_action()` must return `action`.
+        - `test_rewards` : list 
 
-    * `sync_freq` : int, default = 1000
-
-        Number of episodes after which Q-network's parameters will be copied to target Q-network.
-
-    * `lr` : float, default = 1e-03 
-
-        Learning rate used by the optimizer when performing gradient descent.
-
-    * `memory_size` : int, default = 2000
-
-        Size of experience replay buffer
-    
-    * `batch_size` : int, default = 128
-
-        Batch size used in the optimization process.
-
-    * `max_frames` : int, default = 150000
-
-        Maximum number of frames seen during the agent's training.
-    
-    * `epsilon_start` : float, default = 1.0
-
-        Initial probability of exploration.
-
-    * `epsilon_end` : float, default = 0.0
-
-        Terminal probability of exploration. Probability will not be reduced bellow this threshold.
-
-    * `epsilon_decay` : int, default = 250
-
-        Exploration probability decay parameter. The higher the value, the faster the decay.
-
-    * `gamma` : float , default = 0.9
-
-        Discount factor for future rewards.
-
-* Methods : 
-
-    * `run()`: 
-
-        * Parameters :
-        
-            - `eval_window` : int, default = 1000
-
-            Number of frames between each evaluation.
-
-            - `n_evaluations` : int, default = 10
-
-                Number of evaluation runs perform at each evaluation step. 
-
-            - `early_stopping` : bool, default = True
-
-                Whether the training is terminated upon the reward_threshold is achieved.
-
-            - `reward_threshold` : float, default = 197.5
-
-                The reward threshold above which the training is terminated.
-        
-        * Returns :
-
-            - `test_rewards` : list 
-
-                List of calculated average rewards at each evaluation step.
-
+            List of calculated average rewards at each evaluation step.
+</details>
 
 <a name="reinforce"></a>
+
 ### `diploma_framework.algorithms.Reinforce` :
 
-* Parameters :
+<details>
+<summary>Parameters</summary>
 
-    * `environment` : str or object 
+* `environment` : str or object 
 
-        Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+    Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+
+* `model` : pytorch model
+
+    Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `action_probabilities`, `action` and `infer_action()` must return `action`.
+
+* `lr` : float, default = 1e-03
+
+    Learning rate used by the optimizer when performing gradient descent.
+
+* `max_frames` : int, default = 150000
+
+    Maximum number of frames seen during the agent's training.
+
+* `num_steps` : int, default = 150
+
+    Maximum number of steps in an episode. If this number of steps is reach, episode ends and optimization process is performed.
+
+* `gamma` : float , default = 0.9
+
+    Discount factor for future rewards.
+</details>
+
+<details>
+<summary>Methods</summary>
+
+* `run()`: 
+
+    * Parameters :
     
-    * `model` : pytorch model
+        - `eval_window` : int, default = 1000
 
-        Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `action_probabilities`, `action` and `infer_action()` must return `action`.
+        Number of frames between each evaluation.
 
-    * `lr` : float, default = 1e-03
+        - `n_evaluations` : int, default = 10
 
-        Learning rate used by the optimizer when performing gradient descent.
+            Number of evaluation runs perform at each evaluation step. 
 
-    * `max_frames` : int, default = 150000
+        - `early_stopping` : bool, default = True
 
-        Maximum number of frames seen during the agent's training.
+            Whether the training is terminated upon the reward_threshold is achieved.
 
-    * `num_steps` : int, default = 150
+        - `reward_threshold` : float, default = 197.5
 
-        Maximum number of steps in an episode. If this number of steps is reach, episode ends and optimization process is performed.
+            The reward threshold above which the training is terminated.
     
-    * `gamma` : float , default = 0.9
+    * Returns :
 
-        Discount factor for future rewards.
+        - `test_rewards` : list 
 
-* Methods : 
+            List of calculated average rewards at each evaluation step.
+</details>
 
-    * `run()`: 
+<a name="a3c"></a>
 
-        * Parameters :
-        
-            - `eval_window` : int, default = 1000
+### `diploma_framework.algorithms.A3C` :
+<details>
+<summary>Parameters</summary>
+
+* `environment` : str or object 
+
+    Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+
+* `model` : pytorch model
+
+    Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `action_probabilities`, `action`, `value` and `infer_action()` must return `action`.
+
+* `n_workers` : int, default = 8
+
+    Number of parallel working agents.
+    
+* `lr` : float, default = 1e-03
+
+    Learning rate used by the optimizer when performing gradient descent.
+
+* `max_frames` : int, default = 150000
+
+    Maximum number of frames seen during the agent's training.
+
+* `num_steps` : int, default = 150
+
+    Maximum number of steps in an episode. If this number of steps is reach, episode ends and optimization process is performed.
+
+* `actor_weight` : float, default = 1.0
+
+    Weight applied to actor loss.
+
+* `critic_weight` : float, default = 0.1
+
+    Weight applied to critic loss.
+
+* `gamma` : float , default = 0.9
+
+    Discount factor for future rewards.
+
+</details>
+<details>
+<summary>Methods</summary>
+
+* `run()`: 
+
+    * Parameters :
+    
+        - `eval_window` : int, default = 1000
 
             Number of frames between each evaluation.
 
-            - `n_evaluations` : int, default = 10
+        - `n_evaluations` : int, default = 10
 
-                Number of evaluation runs perform at each evaluation step. 
+            Number of evaluation runs perform at each evaluation step. 
 
-            - `early_stopping` : bool, default = True
+        - `early_stopping` : bool, default = True
 
-                Whether the training is terminated upon the reward_threshold is achieved.
+            Whether the training is terminated upon the reward_threshold is achieved.
 
-            - `reward_threshold` : float, default = 197.5
+        - `reward_threshold` : float, default = 197.5
 
-                The reward threshold above which the training is terminated.
-        
-        * Returns :
+            The reward threshold above which the training is terminated.
+    
+    * Returns :
 
-            - `test_rewards` : list 
+        - `test_rewards` : list 
 
-                List of calculated average rewards at each evaluation step.
+            List of calculated average rewards at each evaluation step.
+</details>
+
+### `diploma_framework.algorithms.PPO` :
+
+<details>
+<summary>Parameters</summary>
+
+* `environment` : str or object 
+
+    Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+
+* `model` : pytorch model
+
+    Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `action_probabilities`, `action`, `value` and `infer_action()` must return `action`.
+    
+* `lr` : float, default = 1e-03
+
+    Learning rate used by the optimizer when performing gradient descent.
+
+* `batch_size` : int, default = 32
+
+    Batch size used in optimization process.
+    
+* `epochs` : int, default = 4
+
+    Number of epochs during the optimization process.
+
+* `max_frames` : int, default = 150000
+
+    Maximum number of frames seen during the agent's training.
+
+* `num_steps` : int, default = 150
+
+    Maximum number of steps in an episode. If this number of steps is reach, episode ends and optimization process is performed.
+
+* `clip_param` : float, default = 0.2
+
+    Clip parameter of PPO algorithm.
+
+* `gamma` : float , default = 0.9
+
+    Discount factor for future rewards.
+
+* `lamb` : float, default = 1.0
+
+    Lambda used when discounting rewards.
+
+</details>
+
+<details>
+<summary>Methods</summary>
+
+* `run()`: 
+
+    * Parameters :
+    
+        - `eval_window` : int, default = 1000
+
+            Number of frames between each evaluation.
+
+        - `n_evaluations` : int, default = 10
+
+            Number of evaluation runs perform at each evaluation step. 
+
+        - `early_stopping` : bool, default = True
+
+            Whether the training is terminated upon the reward_threshold is achieved.
+
+        - `reward_threshold` : float, default = 197.5
+
+            The reward threshold above which the training is terminated.
+    
+    * Returns :
+
+        - `test_rewards` : list 
+
+            List of calculated average rewards at each evaluation step.
+
+</details>
