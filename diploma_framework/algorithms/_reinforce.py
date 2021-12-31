@@ -18,7 +18,7 @@ class Reinforce():
                 environment : Union[object, str],
                 model : nn.Module,
                 lr : float = 1e-03,
-                max_episodes : int = 150_000,
+                max_frames : int = 150_000,
                 num_steps : int = 150,
                 gamma : float = 0.99) -> None :
 
@@ -29,7 +29,7 @@ class Reinforce():
             self.env = environment
         
         self.model = model
-        self.max_episodes = max_episodes
+        self.max_frames = max_frames
         self.num_steps = num_steps
         self.gamma = gamma
 
@@ -51,7 +51,7 @@ class Reinforce():
         frame_idx = 0
         early_stop = False
 
-        while frame_idx < self.max_episodes and not early_stop:
+        while frame_idx < self.max_frames and not early_stop:
             
             curr_state = self.env.reset()
             done = False
