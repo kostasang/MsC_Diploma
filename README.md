@@ -3,9 +3,6 @@
 As part of my MsC's thesis, a framework that implements Deep Reinforcement Learning algorithms (DQN, REINFORCE, A3C, PPO) has been developed. Its goal is to enable fast experimentation with different neural network models and different environments without the need of re-implementing the code for each deep reinforcement learning algorithm all over again. The framework is build on Pytorch and any environment following the OpenAI gym API paradigm can be used.
 
 
-[DQN](#dqn)  
-[REINFORCE](#reinforce) 
-
 ## Installation 
 
 Run the following in order to use the framework:
@@ -64,13 +61,18 @@ rewards = ppo.run(early_stopping=False)
 
 ## Documentation
 
+Complete documentation for each algorithm can be found bellow:
+
+* [DQN](#dqn)  
+* [Reinforce](#reinforce) 
+* [A3C](#a3c)
+* [PPO](#ppo)
+
 In order to create a model that is usable from the the framework, the model object must implement two methods, `infer_action()` and `infer_all()`. Each method should return the following :
 
 * `infer_action()` : Return the plain action that the model performs given the state. The returned action must be compatible with `env.step()` method.
 
 * `infer_all()` : Return every usefull information from the model. For example, a Q-network's `infer_all()` method should return `q_value` and `action` while an Actor-Critic model's `infer_all()` method should return `action_probs`, `action` and `value`. In order for the model to return the action, sampling from the probabilities calculated by the model is performer inside `infer_all()` method. This way, the framework can still operate on continious action spaces without the need to change the algorithms.
-
-More specifically, for every implemented algorithm the following documentation is provided:
 
 <a name="dqn"></a>
 ### `diploma_framework.algorithms.DQN` :
@@ -119,7 +121,7 @@ More specifically, for every implemented algorithm the following documentation i
 
     * `gamma` : float , default = 0.9
 
-        Discount factor for feature rewards.
+        Discount factor for future rewards.
 
 * Methods : 
 
@@ -147,6 +149,62 @@ More specifically, for every implemented algorithm the following documentation i
 
             - `test_rewards` : list 
 
-                List of calculated averag rewards at each evaluation step.
+                List of calculated average rewards at each evaluation step.
 
 
+<a name="reinforce"></a>
+### `diploma_framework.algorithms.Reinforce` :
+
+* Parameters :
+
+    * `environment` : str or object 
+
+        Either the name of an gym environment or an environment object exposing the same API as openAI gym.
+    
+    * `model` : pytorch model
+
+        Pytorch network that must implement `infer_all()` and `infer_action()` methods. `infer_all()` must return tuple of `action_probabilities`, `action` and `infer_action()` must return `action`.
+
+    * `lr` : float, default = 1e-03
+
+        Learning rate used by the optimizer when performing gradient descent.
+
+    * `max_frames` : int, default = 150000
+
+        Maximum number of frames seen during the agent's training.
+
+    * `num_steps` : int, default = 150
+
+        Maximum number of steps in an episode. If this number of steps is reach, episode ends and optimization process is performed.
+    
+    * `gamma` : float , default = 0.9
+
+        Discount factor for future rewards.
+
+* Methods : 
+
+    * `run()`: 
+
+        * Parameters :
+        
+            - `eval_window` : int, default = 1000
+
+            Number of frames between each evaluation.
+
+            - `n_evaluations` : int, default = 10
+
+                Number of evaluation runs perform at each evaluation step. 
+
+            - `early_stopping` : bool, default = True
+
+                Whether the training is terminated upon the reward_threshold is achieved.
+
+            - `reward_threshold` : float, default = 197.5
+
+                The reward threshold above which the training is terminated.
+        
+        * Returns :
+
+            - `test_rewards` : list 
+
+                List of calculated average rewards at each evaluation step.
