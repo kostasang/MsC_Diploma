@@ -81,7 +81,7 @@ class A3C():
         for p in processes:
             p.terminate()
         
-        return test_rewards
+        return test_rewards, actor_loss, critic_loss
 
     def _worker(self,
                 worker_id : int,
