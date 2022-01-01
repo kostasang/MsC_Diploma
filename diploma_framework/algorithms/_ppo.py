@@ -1,5 +1,5 @@
 
-import gym, torch
+import gym, torch, logging
 import torch.optim as optim
 import torch.nn as nn
 import numpy as np
@@ -7,6 +7,7 @@ import numpy as np
 from typing import Union
 from diploma_framework.evaluation import test_env
 
+logger = logging.getLogger('deepRL')
 
 class PPO():
 
@@ -96,7 +97,7 @@ class PPO():
                 if frame_idx % eval_window == 0:
                     test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
                     test_rewards.append(test_reward)
-                    print(f'Frame : {frame_idx} - Test reward : {test_reward}')
+                    logger.info(f'Frame : {frame_idx} - Test reward : {test_reward}')
                     if test_reward > reward_threshold and early_stopping: early_stop = True
 
                 if done: break
