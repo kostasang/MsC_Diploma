@@ -120,9 +120,9 @@ class A3C():
             # Loop for steps in episode
             while step_counter < self.num_steps and not done:
                 
-                policy, dist, action, value = self.model.infer_step(state)
+                dist, action, value = self.model.infer_step(state)
                 values.append(value)
-                logprob_ = policy.view(-1)[action]
+                logprob_ = dist.log_prob(torch.Tensor([action]).unsqueeze(0))
                 logprobs.append(logprob_)
                 state_, reward, done, _ = env.step(action)
                 state = torch.from_numpy(state_).float().unsqueeze(0)
