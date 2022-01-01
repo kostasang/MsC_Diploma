@@ -1,4 +1,4 @@
-import torch, gym
+import torch, gym, logging
 import numpy as np
 
 from typing import Union
@@ -6,6 +6,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 from diploma_framework.evaluation import test_env
+
+logger = logging.getLogger('deepRL')
 
 class Reinforce():
 
@@ -71,7 +73,7 @@ class Reinforce():
                 if frame_idx % eval_window == 0:
                     test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
                     test_rewards.append(test_reward)
-                    print(f'Frame : {frame_idx} - Test reward : {test_reward}')
+                    logger.info(f'Frame : {frame_idx} - Test reward : {test_reward}')
                     if test_reward > reward_threshold and early_stopping: early_stop = True
 
                 if done:
