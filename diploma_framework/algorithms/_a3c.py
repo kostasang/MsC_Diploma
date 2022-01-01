@@ -150,14 +150,12 @@ class A3C():
 
 
             # Do not update is criterions for early stop are met
-            test_lock.acquire()
             if not (early_stopping and self.early_stop.value):
                 actor_loss, critic_loss = self._update_params(optimizer, values, rewards, logprobs, bootstraping_value)
                 # Only worker 0 logs losses
                 if worker_id == 0:
                     actor_losses.append(actor_loss.item())
                     critic_losses.append(critic_loss.item())
-            test_lock.release()
    
     def _update_params(self,
                        optimizer : torch.optim,
@@ -182,8 +180,7 @@ class A3C():
         for i in range(rewards.shape[0]):
             ret_ = rewards[i] + self.gamma * ret_
             returns.append(ret_)
-        returns = torch.stack(returns).view(-1)
-        returns = F.normalize(returns, dim=0)
+        returns = torch.stack(returns).view(-1).detach()
         loss, actor_loss, critic_loss = self._criterion(logprobs, values, returns)
         loss.backward()
         optimizer.step()
@@ -199,10 +196,10 @@ class A3C():
 
         """
 
-        actor_loss = -1*logprobs*(returns-values.detach())
+        actor_loss = -1*logprobs*((returns-values).detach())
         critic_loss = torch.pow(values-returns, 2)
-        loss =  self.actor_weight*actor_loss.sum() + self.critic_weight*critic_loss.sum()
+        loss =  self.actor_weight*actor_loss.mean() + self.critic_weight*critic_loss.mean()
         
-        return loss, actor_loss.sum(), critic_loss.sum()
+        return loss, actor_loss.mean(), critic_loss.mean()
 
 
