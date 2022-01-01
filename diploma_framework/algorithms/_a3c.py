@@ -120,7 +120,7 @@ class A3C():
             # Loop for steps in episode
             while step_counter < self.num_steps and not done:
                 
-                policy, action, value = self.model.infer_step(state)
+                policy, dist, action, value = self.model.infer_step(state)
                 values.append(value)
                 logprob_ = policy.view(-1)[action]
                 logprobs.append(logprob_)
