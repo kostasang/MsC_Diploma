@@ -77,11 +77,9 @@ class PPO():
             for _ in range(self.num_steps):
 
                 state = torch.FloatTensor(state).unsqueeze(0)
-                action_log_probs, value = self.model(state)
+                action_log_probs, dist, action, value = self.model.infer_step(state)
 
-                dist = torch.distributions.Categorical(logits=action_log_probs)
-                action = dist.sample()
-                next_state, reward, done, _ = self.env.step(action.item())
+                next_state, reward, done, _ = self.env.step(action)
                 entropy += dist.entropy().mean()
 
                 log_probs.append(action_log_probs)
@@ -172,7 +170,7 @@ class PPO():
         for _ in range(self.epochs):
             for state_batch, action_batch, old_log_probs_batch, return_batch, advantage_batch in self._get_batch(states, actions, log_probs, returns, advantages):
 
-                new_log_probs_batch, value_batch = self.model(state_batch)
+                new_log_probs_batch, value_batch = self.model.infer_batch(state_batch)
                 dist = torch.distributions.Categorical(logits=new_log_probs_batch)
                 entropy = dist.entropy().mean()
                 new_log_probs_batch = new_log_probs_batch.gather(dim=-1, index=action_batch.unsqueeze(1))
