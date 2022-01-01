@@ -62,7 +62,7 @@ class Reinforce():
 
             for _ in range(self.num_steps):
                 
-                act_prob, action = self.model.infer_step(torch.from_numpy(curr_state).float().unsqueeze(dim=0))
+                act_dist, action = self.model.infer_step(torch.from_numpy(curr_state).float().unsqueeze(dim=0))
                 prev_state = curr_state
                 curr_state, reward, done, _ = self.env.step(action)
                 frame_idx += 1
@@ -84,11 +84,13 @@ class Reinforce():
                 # Get batches
                 returns_batch = torch.Tensor([r for (s,a,r) in transitions]).flip(dims=(0,))
                 returns_batch /= returns_batch.max()
+                
                 # List of numpy arrays to numpy and hen to Tensor for performance boost
                 state_batch = torch.Tensor(np.asarray([s for (s,a,r) in transitions]))
                 action_batch = torch.Tensor([a for (s,a,r) in transitions])
-                pred_batch = self.model.infer_batch(state_batch)
-                prob_batch = pred_batch.gather(dim=1, index=action_batch.long().view(-1,1)).squeeze()
+                pred_dist_batch = self.model.infer_batch(state_batch)
+                prob_batch = pred_dist_batch.log_prob(action_batch)
+
                 # Calculate loss based on log prob and discounted rewards
                 loss = self.criterion(prob_batch, returns_batch)
                 self.optimizer.zero_grad()
@@ -104,6 +106,6 @@ class Reinforce():
         Reinforce algorithm loss function 
 
         """
-
-        return -1 * torch.sum(returns_batch*torch.log(predicted_probs_batch))
+        # log is already applied to predicted_probs_batch
+        return -1 * torch.sum(returns_batch*predicted_probs_batch)
 
