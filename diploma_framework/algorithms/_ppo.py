@@ -26,7 +26,10 @@ class PPO():
                  num_steps : int = 100,
                  clip_param : float = 0.2,
                  gamma : float = 0.99,
-                 lamb : float = 1
+                 lamb : float = 1.0,
+                 actor_weight : float = 1.0,
+                 critic_weight : float = 0.5,
+                 entropy_weight : float = 0.001
                 ):
 
         if isinstance(environment, str):
@@ -43,6 +46,9 @@ class PPO():
         self.clip_param = clip_param
         self.gamma = gamma
         self.lamb = lamb
+        self.actor_weight = actor_weight
+        self.critic_weight = critic_weight
+        self.entropy_weight = entropy_weight
 
     def run(self, 
             eval_window : int = 1000,
@@ -183,7 +189,7 @@ class PPO():
                 actor_loss = -torch.min(surr1, surr2).mean()
                 critic_loss = (return_batch - value_batch).pow(2).mean()
 
-                loss = 0.5*critic_loss + actor_loss - 0.001 * entropy
+                loss = self.critic_weight*critic_loss + self.actor_weight*actor_loss - self.entropy_weight * entropy
 
                 self.optimizer.zero_grad()
                 loss.backward()
