@@ -76,13 +76,13 @@ class DQN():
 
                 epsilon = self.epsilon_end + (self.epsilon_start-self.epsilon_end)*math.exp(-1 *frame_idx / self.epsilon_decay)
                 frame_idx += 1
-                qval = self.model.infer_all(state0).data.numpy()
+                qval, action = self.model.infer_step(state0)
 
                 # Explore or exploit
                 if (random.random() < epsilon):
                     action = np.random.randint(0,self.env.action_space.n)
                 else:
-                    action = np.argmax(qval)
+                    pass
                 
                 # Make the action
                 state1_, reward, done, _ = self.env.step(action)
@@ -99,9 +99,9 @@ class DQN():
                     batch = random.sample(self.replay_buffer, self.batch_size)
                     state0_batch, action_batch, reward_batch, state1_batch, done_batch = self._get_batch_data(batch)
 
-                    Q1 = self.model.infer_all(state0_batch)
+                    Q1 = self.model.infer_batch(state0_batch)
                     with torch.inference_mode():
-                        Q2 = self.target_model.infer_all(state1_batch)
+                        Q2 = self.target_model.infer_batch(state1_batch)
                     
                     # Bellman criterion
                     Y = reward_batch + self.gamma * ((1-done_batch) * torch.max(Q2, dim=1)[0])
