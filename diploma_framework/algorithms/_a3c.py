@@ -120,20 +120,17 @@ class A3C():
             # Loop for steps in episode
             while step_counter < self.num_steps and not done:
                 
-                policy, value = self.model(state)
+                policy, action, value = self.model.infer_step(state)
                 values.append(value)
-                logits = policy.view(-1)
-                action_dist = torch.distributions.Categorical(logits=logits)
-                action = action_dist.sample()
                 logprob_ = policy.view(-1)[action]
                 logprobs.append(logprob_)
-                state_, reward, done, _ = env.step(action.detach().numpy())
+                state_, reward, done, _ = env.step(action)
                 state = torch.from_numpy(state_).float().unsqueeze(0)
                 if done:
                     env.reset()
                 if step_counter == self.num_steps and not done:
                     # Get value of next state
-                    _, value = self.model(state)
+                    _, _, value = self.model.infer_step(state)
                     bootstraping_value = value.detach()
                 rewards.append(reward)
                 
