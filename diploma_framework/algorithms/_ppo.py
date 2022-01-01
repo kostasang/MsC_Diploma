@@ -77,11 +77,12 @@ class PPO():
             for _ in range(self.num_steps):
 
                 state = torch.FloatTensor(state).unsqueeze(0)
-                action_log_probs, dist, action, value = self.model.infer_step(state)
+                dist, action, value = self.model.infer_step(state)
 
                 next_state, reward, done, _ = self.env.step(action)
                 entropy += dist.entropy().mean()
-
+                
+                action_log_probs = dist.log_prob(torch.Tensor([action]))
                 log_probs.append(action_log_probs)
                 values.append(value)
                 rewards.append(reward)
@@ -101,7 +102,7 @@ class PPO():
                 if done: break
 
             next_state = torch.FloatTensor(next_state).unsqueeze(0)
-            _, next_value = self.model(next_state)
+            _, _, next_value = self.model.infer_step(next_state)
             
             returns = self._compute_returns(next_value, rewards, masks, values)
 
@@ -153,7 +154,7 @@ class PPO():
         total_experiences = states.size(0)
         for _ in range(total_experiences // self.batch_size):
             selections = np.random.randint(0, total_experiences, self.batch_size)
-            yield states[selections,:], actions[selections], log_probs[selections,:], returns[selections,:], advantage[selections, :]
+            yield states[selections,:], actions[selections], log_probs[selections], returns[selections,:], advantage[selections, :]
 
     def _update_params(self, 
                   states : np.ndarray, 
@@ -170,11 +171,10 @@ class PPO():
         for _ in range(self.epochs):
             for state_batch, action_batch, old_log_probs_batch, return_batch, advantage_batch in self._get_batch(states, actions, log_probs, returns, advantages):
 
-                new_log_probs_batch, value_batch = self.model.infer_batch(state_batch)
-                dist = torch.distributions.Categorical(logits=new_log_probs_batch)
-                entropy = dist.entropy().mean()
-                new_log_probs_batch = new_log_probs_batch.gather(dim=-1, index=action_batch.unsqueeze(1))
-                old_log_probs_batch = old_log_probs_batch.gather(dim=-1, index=action_batch.unsqueeze(1))
+                dist_batch, value_batch = self.model.infer_batch(state_batch)
+                entropy = dist_batch.entropy().mean()
+                
+                new_log_probs_batch = dist_batch.log_prob(action_batch)
 
                 ratio = (new_log_probs_batch - old_log_probs_batch).exp()
                 surr1 = ratio*advantage_batch
