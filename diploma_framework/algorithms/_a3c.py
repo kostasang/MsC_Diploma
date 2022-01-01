@@ -1,4 +1,4 @@
-import torch, gym, copy
+import torch, gym, copy, logging
 import numpy as np, multiprocessing as mp
 
 from typing import Union
@@ -10,6 +10,7 @@ from diploma_framework.evaluation import test_env
 
 test_lock = mp.Lock()
 
+logger = logging.getLogger('deepRL')
 
 class A3C():
 
@@ -144,7 +145,7 @@ class A3C():
                     counter = frame_counter.value
                     test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
                     test_rewards.append(test_reward)
-                    print(f'Frame : {counter} - Test reward : {test_reward}')
+                    logger.info(f'Frame : {counter} - Test reward : {test_reward}')
                     if test_reward > reward_threshold and early_stopping: self.early_stop.value = True
                 test_lock.release()
 
