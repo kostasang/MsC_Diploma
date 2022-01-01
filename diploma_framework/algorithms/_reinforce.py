@@ -62,8 +62,7 @@ class Reinforce():
 
             for _ in range(self.num_steps):
                 
-                act_prob = self.model(torch.from_numpy(curr_state).float().unsqueeze(dim=0))
-                action = np.random.choice(np.array([0,1]), p=act_prob.squeeze(dim=0).data.numpy())
+                act_prob, action = self.model.infer_step(torch.from_numpy(curr_state).float().unsqueeze(dim=0))
                 prev_state = curr_state
                 curr_state, reward, done, _ = self.env.step(action)
                 frame_idx += 1
@@ -88,7 +87,7 @@ class Reinforce():
                 # List of numpy arrays to numpy and hen to Tensor for performance boost
                 state_batch = torch.Tensor(np.asarray([s for (s,a,r) in transitions]))
                 action_batch = torch.Tensor([a for (s,a,r) in transitions])
-                pred_batch = self.model(state_batch)
+                pred_batch = self.model.infer_batch(state_batch)
                 prob_batch = pred_batch.gather(dim=1, index=action_batch.long().view(-1,1)).squeeze()
                 # Calculate loss based on log prob and discounted rewards
                 loss = self.criterion(prob_batch, returns_batch)
