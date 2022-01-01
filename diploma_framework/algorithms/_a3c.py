@@ -122,7 +122,7 @@ class A3C():
                 
                 dist, action, value = self.model.infer_step(state)
                 values.append(value)
-                logprob_ = dist.log_prob(torch.Tensor([action]).unsqueeze(0))
+                logprob_ = dist.log_prob(torch.Tensor([action]))
                 logprobs.append(logprob_)
                 state_, reward, done, _ = env.step(action)
                 state = torch.from_numpy(state_).float().unsqueeze(0)
