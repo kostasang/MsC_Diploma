@@ -15,7 +15,7 @@ class DeepRLAlgorithm():
         """
         return self.model 
 
-    def save_model(self, path : str):
+    def save_model(self, path : str) -> None :
 
         """
         Saves the algorithm's model to the specified path
