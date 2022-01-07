@@ -5,11 +5,13 @@ import torch.nn as nn
 import numpy as np
 
 from typing import Union
+
+from diploma_framework.algorithms._generic import DeepRLAlgorithm
 from diploma_framework.evaluation import test_env
 
 logger = logging.getLogger('deepRL')
 
-class PPO():
+class PPO(DeepRLAlgorithm):
 
     """
     Implements PPO algorithm
