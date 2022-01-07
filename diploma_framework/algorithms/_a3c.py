@@ -6,13 +6,14 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.nn import functional as F 
 
+from diploma_framework.algorithms._generic import DeepRLAlgorithm
 from diploma_framework.evaluation import test_env
 
 test_lock = mp.Lock()
 
 logger = logging.getLogger('deepRL')
 
-class A3C():
+class A3C(DeepRLAlgorithm):
 
     """
     Implements A3C algorithm
