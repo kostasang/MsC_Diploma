@@ -1,6 +1,7 @@
 import torch, gym, logging
 import numpy as np
 
+from tqdm import tqdm
 from typing import Union
 import torch.nn as nn
 import torch.optim as optim
@@ -50,53 +51,58 @@ class Reinforce(DeepRLAlgorithm):
 
         """
 
+        logger.info('Initializing training')
         test_rewards = []
         frame_idx = 0
         early_stop = False
 
-        while frame_idx < self.max_frames and not early_stop:
-            
-            curr_state = self.env.reset()
-            done = False
-            transitions = []
-            cumulative_reward = 0
-
-            for _ in range(self.num_steps):
+        with tqdm(total = self.max_frames) as pbar:
+            while frame_idx < self.max_frames and not early_stop:
                 
-                act_dist, action = self.model.infer_step(torch.from_numpy(curr_state).float().unsqueeze(dim=0))
-                prev_state = curr_state
-                curr_state, reward, done, _ = self.env.step(action)
-                frame_idx += 1
-                cumulative_reward = reward + self.gamma * cumulative_reward
-                transitions.append((prev_state, action, cumulative_reward))
+                curr_state = self.env.reset()
+                done = False
+                transitions = []
+                cumulative_reward = 0
 
-                if frame_idx % eval_window == 0:
-                    test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
-                    test_rewards.append(test_reward)
-                    logger.info(f'Frame : {frame_idx} - Test reward : {test_reward}')
-                    if test_reward > reward_threshold and early_stopping: early_stop = True
+                for _ in range(self.num_steps):
+                    
+                    act_dist, action = self.model.infer_step(torch.from_numpy(curr_state).float().unsqueeze(dim=0))
+                    prev_state = curr_state
+                    curr_state, reward, done, _ = self.env.step(action)
+                    frame_idx += 1
+                    cumulative_reward = reward + self.gamma * cumulative_reward
+                    transitions.append((prev_state, action, cumulative_reward))
 
-                if done:
-                    break
-            
-            # Do not update is criterions for early stop are met
-            if not (early_stopping and early_stop):
+                    if frame_idx % eval_window == 0:
+                        test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
+                        test_rewards.append(test_reward)
+                        pbar.update(eval_window)
+                        pbar.set_description(f'Cumulative reward {test_reward}')
+                        if test_reward > reward_threshold and early_stopping: 
+                            early_stop = True
+                            logger.info('Early stopping criteria met')
+
+                    if done:
+                        break
                 
-                # Get batches
-                returns_batch = torch.Tensor([r for (s,a,r) in transitions]).flip(dims=(0,))
-                returns_batch /= returns_batch.max()
-                
-                # List of numpy arrays to numpy and hen to Tensor for performance boost
-                state_batch = torch.Tensor(np.asarray([s for (s,a,r) in transitions]))
-                action_batch = torch.Tensor([a for (s,a,r) in transitions])
-                pred_dist_batch = self.model.infer_batch(state_batch)
-                prob_batch = pred_dist_batch.log_prob(action_batch)
+                # Do not update is criterions for early stop are met
+                if not (early_stopping and early_stop):
+                    
+                    # Get batches
+                    returns_batch = torch.Tensor([r for (s,a,r) in transitions]).flip(dims=(0,))
+                    returns_batch /= returns_batch.max()
+                    
+                    # List of numpy arrays to numpy and hen to Tensor for performance boost
+                    state_batch = torch.Tensor(np.asarray([s for (s,a,r) in transitions]))
+                    action_batch = torch.Tensor([a for (s,a,r) in transitions])
+                    pred_dist_batch = self.model.infer_batch(state_batch)
+                    prob_batch = pred_dist_batch.log_prob(action_batch)
 
-                # Calculate loss based on log prob and discounted rewards
-                loss = self.criterion(prob_batch, returns_batch)
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
+                    # Calculate loss based on log prob and discounted rewards
+                    loss = self.criterion(prob_batch, returns_batch)
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
 
         return test_rewards
         
