@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn as nn
 import numpy as np
 
+from tqdm import tqdm
 from typing import Union
 
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
@@ -66,62 +67,67 @@ class PPO(DeepRLAlgorithm):
 
         """
 
-        test_rewards = []
+        logger.info('Initializing training')
 
+        test_rewards = []
         frame_idx = 0
         early_stop = False
 
-        while frame_idx < self.max_frames and not early_stop:
+        with tqdm(total = self.max_frames) as pbar:
+            while frame_idx < self.max_frames and not early_stop:
 
-            log_probs = []
-            values = []
-            states = []
-            actions = []
-            rewards = []
-            masks = []
-            entropy = 0
-            
-            state = self.env.reset()
-            for _ in range(self.num_steps):
-
-                state = torch.FloatTensor(state).unsqueeze(0)
-                dist, action, value = self.model.infer_step(state)
-
-                next_state, reward, done, _ = self.env.step(action)
-                entropy += dist.entropy().mean()
+                log_probs = []
+                values = []
+                states = []
+                actions = []
+                rewards = []
+                masks = []
+                entropy = 0
                 
-                action_log_probs = dist.log_prob(torch.Tensor([action]))
-                log_probs.append(action_log_probs)
-                values.append(value)
-                rewards.append(reward)
-                masks.append(1-done)
+                state = self.env.reset()
+                for _ in range(self.num_steps):
 
-                states.append(state)
-                actions.append(action)
+                    state = torch.FloatTensor(state).unsqueeze(0)
+                    dist, action, value = self.model.infer_step(state)
+
+                    next_state, reward, done, _ = self.env.step(action)
+                    entropy += dist.entropy().mean()
+                    
+                    action_log_probs = dist.log_prob(torch.Tensor([action]))
+                    log_probs.append(action_log_probs)
+                    values.append(value)
+                    rewards.append(reward)
+                    masks.append(1-done)
+
+                    states.append(state)
+                    actions.append(action)
+                    
+                    state = next_state
+                    frame_idx += 1
+                    if frame_idx % eval_window == 0:
+                        test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
+                        test_rewards.append(test_reward)
+                        pbar.update(eval_window)
+                        pbar.set_description(f'Cumulative reward {test_reward}')
+                        if test_reward > reward_threshold and early_stopping: 
+                            early_stop = True
+                            logger.info('Early stopping criteria met')
+
+                    if done: break
+
+                next_state = torch.FloatTensor(next_state).unsqueeze(0)
+                _, _, next_value = self.model.infer_step(next_state)
                 
-                state = next_state
-                frame_idx += 1
-                if frame_idx % eval_window == 0:
-                    test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
-                    test_rewards.append(test_reward)
-                    logger.info(f'Frame : {frame_idx} - Test reward : {test_reward}')
-                    if test_reward > reward_threshold and early_stopping: early_stop = True
+                returns = self._compute_returns(next_value, rewards, masks, values)
 
-                if done: break
+                returns   = torch.cat(returns).detach()
+                log_probs = torch.cat(log_probs).detach()
+                values    = torch.cat(values).detach()
+                states    = torch.cat(states, dim=0)
+                actions   = torch.LongTensor(actions)
+                advantage = returns -  values
 
-            next_state = torch.FloatTensor(next_state).unsqueeze(0)
-            _, _, next_value = self.model.infer_step(next_state)
-            
-            returns = self._compute_returns(next_value, rewards, masks, values)
-
-            returns   = torch.cat(returns).detach()
-            log_probs = torch.cat(log_probs).detach()
-            values    = torch.cat(values).detach()
-            states    = torch.cat(states, dim=0)
-            actions   = torch.LongTensor(actions)
-            advantage = returns -  values
-
-            self._update_params(states, actions, log_probs, returns, advantage)
+                self._update_params(states, actions, log_probs, returns, advantage)
 
         return test_rewards
 
