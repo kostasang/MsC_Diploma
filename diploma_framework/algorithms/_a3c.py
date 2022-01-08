@@ -140,10 +140,9 @@ class A3C(DeepRLAlgorithm):
                     bootstraping_value = value.detach()
                 rewards.append(reward)
                 
+                test_lock.acquire()
                 step_counter +=1
                 frame_counter.value += 1
-                
-                test_lock.acquire()
                 if frame_counter.value % eval_window == 0:
                     counter = frame_counter.value
                     test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
