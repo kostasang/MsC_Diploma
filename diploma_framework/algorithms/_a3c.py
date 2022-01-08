@@ -1,6 +1,7 @@
 import torch, gym, copy, logging
 import numpy as np, multiprocessing as mp
 
+from tqdm import tqdm
 from typing import Union
 import torch.nn as nn
 import torch.optim as optim
@@ -62,7 +63,8 @@ class A3C(DeepRLAlgorithm):
         Returns list of test rewards throughout the agent's training loop.
 
         """
-
+        
+        logger.info('Initializing training')
         manager = mp.Manager()
         test_rewards = manager.list()
         actor_loss = manager.list()
@@ -71,17 +73,19 @@ class A3C(DeepRLAlgorithm):
 
         processes = []
         frame_counter = mp.Value('Q', 0)
-        for i in range(self.n_workers):
-            p = mp.Process(target=self._worker, args=(i, test_rewards, actor_loss, critic_loss, 
-                                                      frame_counter, eval_window, n_evaluations, early_stopping,
-                                                      reward_threshold))
-            p.start()
-            processes.append(p)
-        
-        for p in processes:
-            p.join()
-        for p in processes:
-            p.terminate()
+
+        with tqdm(total = self.max_frames) as pbar:
+            for i in range(self.n_workers):
+                p = mp.Process(target=self._worker, args=(i, test_rewards, actor_loss, critic_loss, 
+                                                        frame_counter, eval_window, n_evaluations, early_stopping,
+                                                        reward_threshold, pbar))
+                p.start()
+                processes.append(p)
+            
+            for p in processes:
+                p.join()
+            for p in processes:
+                p.terminate()
         
         return test_rewards, actor_loss, critic_loss
 
@@ -94,7 +98,8 @@ class A3C(DeepRLAlgorithm):
                 eval_window : int,
                 n_evaluations : int,
                 early_stopping : bool,
-                reward_threshold : float):
+                reward_threshold : float,
+                pbar : tqdm):
         
         """
         Process performed per different worker
@@ -143,8 +148,12 @@ class A3C(DeepRLAlgorithm):
                     counter = frame_counter.value
                     test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
                     test_rewards.append(test_reward)
-                    logger.info(f'Frame : {counter} - Test reward : {test_reward}')
-                    if test_reward > reward_threshold and early_stopping: self.early_stop.value = True
+                    pbar.n = int(counter / eval_window * 1000)
+                    pbar.refresh()
+                    pbar.set_description(f'Cumulative reward {test_reward}')
+                    if test_reward > reward_threshold and early_stopping: 
+                        logger.info('Early stopping criteria met')
+                        self.early_stop.value = True
                 test_lock.release()
 
 
