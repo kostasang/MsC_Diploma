@@ -1,6 +1,7 @@
 import torch, gym, copy, math, random, logging
 import numpy as np
 
+from tqdm import tqdm
 from collections import deque
 from typing import Union
 import torch.nn as nn
@@ -62,67 +63,72 @@ class DQN(DeepRLAlgorithm):
 
         """
 
+        logger.info('Initializing training')
         test_rewards = []
         frame_idx = 0
         early_stop = False
 
-        while frame_idx < self.max_frames and not early_stop:
-            
-            state0_ = self.env.reset()
-            state0 = torch.from_numpy(state0_).float().unsqueeze(dim=0)
-            done =  False
-
-            # In episode :
-            while not done and not early_stop:
-
-                epsilon = self.epsilon_end + (self.epsilon_start-self.epsilon_end)*math.exp(-1 *frame_idx / self.epsilon_decay)
-                frame_idx += 1
-                qval, action = self.model.infer_step(state0)
-
-                # Explore or exploit
-                if (random.random() < epsilon):
-                    action = np.random.randint(0,self.env.action_space.n)
-                else:
-                    pass
+        with tqdm(total = self.max_frames) as pbar:
+            while frame_idx < self.max_frames and not early_stop:
                 
-                # Make the action
-                state1_, reward, done, _ = self.env.step(action)
-                state1 = torch.from_numpy(state1_).float().unsqueeze(dim=0)
+                state0_ = self.env.reset()
+                state0 = torch.from_numpy(state0_).float().unsqueeze(dim=0)
+                done =  False
 
-                # Store experience
-                exp = (state0, action, reward, state1, done)
-                self.replay_buffer.append(exp)
-                state0 = state1
+                # In episode :
+                while not done and not early_stop:
 
-                # Train network after new experience is added
-                if len(self.replay_buffer) > self.batch_size:
+                    epsilon = self.epsilon_end + (self.epsilon_start-self.epsilon_end)*math.exp(-1 *frame_idx / self.epsilon_decay)
+                    frame_idx += 1
+                    qval, action = self.model.infer_step(state0)
 
-                    batch = random.sample(self.replay_buffer, self.batch_size)
-                    state0_batch, action_batch, reward_batch, state1_batch, done_batch = self._get_batch_data(batch)
-
-                    Q1 = self.model.infer_batch(state0_batch)
-                    with torch.inference_mode():
-                        Q2 = self.target_model.infer_batch(state1_batch)
+                    # Explore or exploit
+                    if (random.random() < epsilon):
+                        action = np.random.randint(0,self.env.action_space.n)
+                    else:
+                        pass
                     
-                    # Bellman criterion
-                    Y = reward_batch + self.gamma * ((1-done_batch) * torch.max(Q2, dim=1)[0])
-                    X = Q1.gather(dim=1, index=action_batch.long().unsqueeze(dim=1)).squeeze()
-                    loss = self.criterion(X, Y.detach())
+                    # Make the action
+                    state1_, reward, done, _ = self.env.step(action)
+                    state1 = torch.from_numpy(state1_).float().unsqueeze(dim=0)
 
-                    # Perform update
-                    self.optimizer.zero_grad()
-                    loss.backward()
-                    self.optimizer.step()
+                    # Store experience
+                    exp = (state0, action, reward, state1, done)
+                    self.replay_buffer.append(exp)
+                    state0 = state1
 
-                    # Update target network every sync_freq steps
-                    if (frame_idx % self.sync_freq == 0):
-                        self.target_model.load_state_dict(self.model.state_dict())
+                    # Train network after new experience is added
+                    if len(self.replay_buffer) > self.batch_size:
 
-                if frame_idx % eval_window == 0:
-                    test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
-                    test_rewards.append(test_reward)
-                    logger.info(f'Frame : {frame_idx} - Test reward : {test_reward}')
-                    if test_reward > reward_threshold and early_stopping: early_stop = True
+                        batch = random.sample(self.replay_buffer, self.batch_size)
+                        state0_batch, action_batch, reward_batch, state1_batch, done_batch = self._get_batch_data(batch)
+
+                        Q1 = self.model.infer_batch(state0_batch)
+                        with torch.inference_mode():
+                            Q2 = self.target_model.infer_batch(state1_batch)
+                        
+                        # Bellman criterion
+                        Y = reward_batch + self.gamma * ((1-done_batch) * torch.max(Q2, dim=1)[0])
+                        X = Q1.gather(dim=1, index=action_batch.long().unsqueeze(dim=1)).squeeze()
+                        loss = self.criterion(X, Y.detach())
+
+                        # Perform update
+                        self.optimizer.zero_grad()
+                        loss.backward()
+                        self.optimizer.step()
+
+                        # Update target network every sync_freq steps
+                        if (frame_idx % self.sync_freq == 0):
+                            self.target_model.load_state_dict(self.model.state_dict())
+
+                    if frame_idx % eval_window == 0:
+                        test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
+                        test_rewards.append(test_reward)
+                        pbar.update(eval_window)
+                        pbar.set_description(f'Cumulative reward {test_reward}')
+                        if test_reward > reward_threshold and early_stopping: 
+                            early_stop = True
+                            logger.info('Early stopping criteria met')
 
         return test_rewards
 
