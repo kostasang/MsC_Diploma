@@ -5,7 +5,6 @@ PPO/
 
 experiment_small.py
 experiment_big.py
-models.py
 
 test.py
 infer_vectors.py
