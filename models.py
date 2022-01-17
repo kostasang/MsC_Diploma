@@ -26,7 +26,7 @@ class EnhancedActorCritic(nn.Module):
         # Freeze resnet parameters (transfer learning approach)
         for child in self.resnet_core.children():
             for parameter in child.parameters():
-                parameter.requires_grad = False
+                parameter.requires_grad = True
         
         self.actor_head = nn.Sequential(
             nn.Linear(512,256),
@@ -52,6 +52,72 @@ class EnhancedActorCritic(nn.Module):
         action = dist.sample().item()
         return dist, action, value 
     
+    def infer_batch(self, x):
+        action_probs, value = self.forward(x)
+        dist = torch.distributions.Categorical(logits=action_probs)
+        return dist, value
+
+    def infer_action(self, x):
+        dist, _ = self.forward(x)
+        dist = torch.distributions.Categorical(logits=dist)
+        return dist.sample().cpu().numpy()[0]
+
+class CNNActorCritic(nn.Module):
+
+    def __init__(self, n_output, device):
+
+        super(CNNActorCritic, self).__init__()
+
+        self.device = device
+        self.transform = T.Compose([
+                    T.Normalize(mean=[0,0,0], std=[255,255,255]),   # Turn input to 0-1 range from 0-255
+                    T.Resize(256),
+                    T.CenterCrop(224)])
+
+        self.conv_core = nn.Sequential(
+            nn.Conv2d(3, 32, 8, 2),
+            nn.ReLU(),
+            nn.MaxPool2d(4, 2),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 32, 4),
+            nn.ReLU(),
+            nn.MaxPool2d(4, 2),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 32, 4),
+            nn.ReLU(),
+            nn.MaxPool2d(4, 2),
+            nn.BatchNorm2d(32, 32, 4, 1),
+            nn.ReLU(),
+            nn.MaxPool2d(4, 2),
+            nn.BatchNorm2d(32),
+            nn.Flatten()
+        ).to(self.device)
+        
+        self.actor_head = nn.Sequential(
+            nn.Linear(288,128),
+            nn.ReLU(),
+            nn.Linear(128, n_output)
+        ).to(device=self.device)
+
+        self.critic_head = nn.Sequential(
+            nn.Linear(288, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1)
+        ).to(device=self.device)
+
+    def forward(self, x):
+        x = torch.permute(x, (0, 3, 1, 2))  # Place channel axis in correct position
+        x = self.transform(x)               # Apply transform
+        x = x.to(device=self.device)
+        visual_repr = self.conv_core(x).squeeze(-1).squeeze(-1)   # Calculate ResNet output
+        return F.log_softmax(self.actor_head(visual_repr), dim=1).to('cpu'), self.critic_head(visual_repr.detach()).to('cpu') # Calculate policy probs and value
+
+    def infer_step(self, x):
+        action_probs, value = self.forward(x)
+        dist = torch.distributions.Categorical(logits=action_probs)
+        action = dist.sample().item()
+        return dist, action, value 
+
     def infer_batch(self, x):
         action_probs, value = self.forward(x)
         dist = torch.distributions.Categorical(logits=action_probs)
