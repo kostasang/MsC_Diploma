@@ -8,10 +8,11 @@ from PIL import Image
 
 class EnhancedActorCritic(nn.Module):
     
-    def __init__(self, n_output, normalization_means, normalization_stds):
+    def __init__(self, n_output, normalization_means, normalization_stds, device):
         
         super(EnhancedActorCritic,self).__init__()
         
+        self.device = device
         model = models.resnet18(pretrained=True, progress=True)
         self.transform = T.Compose([
                     T.Normalize(mean=[0,0,0], std=[255,255,255]),   # Turn input to 0-1 range from 0-255
@@ -20,8 +21,8 @@ class EnhancedActorCritic(nn.Module):
                     T.CenterCrop(224)])
 
         
-        self.resnet_core = nn.Sequential(*(list(model.children())[:-1]))
-        
+        self.resnet_core = nn.Sequential(*(list(model.children())[:-1])).to(device=self.device)
+
         # Freeze resnet parameters (transfer learning approach)
         for child in self.resnet_core.children():
             for parameter in child.parameters():
@@ -31,19 +32,19 @@ class EnhancedActorCritic(nn.Module):
             nn.Linear(512,256),
             nn.ReLU(),
             nn.Linear(256, n_output)
-        )
+        ).to(device=self.device)
         self.critic_head = nn.Sequential(
             nn.Linear(512, 256),
             nn.ReLU(),
             nn.Linear(256, 1)
-        )
+        ).to(device=self.device)
 
     def forward(self, x):
-        
         x = torch.permute(x, (0, 3, 1, 2))  # Place channel axis in correct position
         x = self.transform(x)               # Apply transform
+        x = x.to(device=self.device)
         visual_repr = self.resnet_core(x).squeeze(-1).squeeze(-1)   # Calculate ResNet output
-        return F.log_softmax(self.actor_head(visual_repr), dim=1), self.critic_head(visual_repr) # Calculate policy probs and value
+        return F.log_softmax(self.actor_head(visual_repr), dim=1).to('cpu'), self.critic_head(visual_repr).to('cpu') # Calculate policy probs and value
 
     def infer_step(self, x):
         action_probs, value = self.forward(x)
