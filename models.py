@@ -18,8 +18,15 @@ class EnhancedActorCritic(nn.Module):
                     T.Normalize(mean=normalization_means, std=normalization_stds),  # Normalization for ResNet
                     T.Resize(256),
                     T.CenterCrop(224)])
+
         
         self.resnet_core = nn.Sequential(*(list(model.children())[:-1]))
+        
+        # Freeze resnet parameters (transfer learning approach)
+        for child in self.resnet_core.children():
+            for parameter in child.parameters():
+                parameter.requires_grad = False
+        
         self.actor_head = nn.Sequential(
             nn.Linear(512,256),
             nn.ReLU(),
