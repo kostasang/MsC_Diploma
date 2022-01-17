@@ -8,14 +8,14 @@ from PIL import Image
 
 class EnhancedActorCritic(nn.Module):
     
-    def __init__(self, n_output):
+    def __init__(self, n_output, normalization_means, normalization_stds):
         
         super(EnhancedActorCritic,self).__init__()
         
         model = models.resnet18(pretrained=True, progress=True)
         self.transform = T.Compose([
-                    T.ToTensor(),
-                    T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                    T.Normalize(mean=[0,0,0], std=[255,255,255]),   # Turn input to 0-1 range from 0-255
+                    T.Normalize(mean=normalization_means, std=normalization_stds),  # Normalization for ResNet
                     T.Resize(256),
                     T.CenterCrop(224)])
         
@@ -30,23 +30,29 @@ class EnhancedActorCritic(nn.Module):
             nn.ReLU(),
             nn.Linear(256, 1)
         )
-        
-    def transform(self, x : np.ndarray) -> torch.Tensor:
-
-        """
-        Responsible for applying transformation to input ndarray
-
-        """
-        x = Image.fromarray(x)
-        return self.transform(x)
 
     def forward(self, x):
         
-        # x : input tensor (mayvbe the difference of current and previous visual visual state?)
-        
-        visual_repr = self.resnet_core(x)
-        return self.actor_head(visual_repr), self.critic_head(visual_repr)
+        x = torch.permute(x, (0, 3, 1, 2))  # Place channel axis in correct position
+        x = self.transform(x)               # Apply transform
+        visual_repr = self.resnet_core(x).squeeze(-1).squeeze(-1)   # Calculate ResNet output
+        return F.log_softmax(self.actor_head(visual_repr), dim=1), self.critic_head(visual_repr) # Calculate policy probs and value
 
+    def infer_step(self, x):
+        action_probs, value = self.forward(x)
+        dist = torch.distributions.Categorical(logits=action_probs)
+        action = dist.sample().item()
+        return dist, action, value 
+    
+    def infer_batch(self, x):
+        action_probs, value = self.forward(x)
+        dist = torch.distributions.Categorical(logits=action_probs)
+        return dist, value
+
+    def infer_action(self, x):
+        dist, _ = self.forward(x)
+        dist = torch.distributions.Categorical(logits=dist)
+        return dist.sample().cpu().numpy()[0]
 
 class SimpleDQN(nn.Module):
 
