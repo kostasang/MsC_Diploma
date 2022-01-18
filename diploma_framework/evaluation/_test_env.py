@@ -10,18 +10,20 @@ def test_env(env : Union[object, str],
 
     """
     Used for testing the so far trained model. It calculates the total reward 
-    received when model operates on the environment.
+    received when model operates on the environment and the total number of frames.
 
     """
 
     if isinstance(env, str):
         env = gym.make(env)
     else:
-        env = copy.deepcopy(env)
+        #env = copy.deepcopy(env)
+        pass
     state = env.reset()
     if vis: env.render()
     done = False
     total_reward = 0
+    total_frames = 0
     while not done:
         state = torch.FloatTensor(state).unsqueeze(0)
         action = model.infer_action(state)
@@ -29,5 +31,6 @@ def test_env(env : Union[object, str],
         state = next_state
         if vis: env.render()
         total_reward += reward
+        total_frames += 1
     env.close()
-    return total_reward
+    return total_reward, total_frames
