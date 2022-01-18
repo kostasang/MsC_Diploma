@@ -70,6 +70,7 @@ class PPO(DeepRLAlgorithm):
         logger.info('Initializing training')
 
         test_rewards = []
+        test_frames = []
         frame_idx = 0
         early_stop = False
 
@@ -105,10 +106,13 @@ class PPO(DeepRLAlgorithm):
                     state = next_state
                     frame_idx += 1
                     if frame_idx % eval_window == 0:
-                        test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
+                        evaluations = [test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)]
+                        test_reward = np.mean([metric[0] for metric in evaluations])
+                        n_frames = np.mean([metric[1] for metric in evaluations])
                         test_rewards.append(test_reward)
+                        test_frames.append(n_frames)
                         pbar.update(eval_window)
-                        pbar.set_description(f'Cumulative reward {test_reward}')
+                        pbar.set_description(f'Reward {test_reward} - Frames {n_frames}')
                         if test_reward > reward_threshold and early_stopping: 
                             early_stop = True
                             logger.info('Early stopping criteria met')
@@ -129,7 +133,7 @@ class PPO(DeepRLAlgorithm):
 
                 self._update_params(states, actions, log_probs, returns, advantage)
 
-        return test_rewards
+        return test_rewards, test_frames
 
     def _compute_returns(self, 
                     next_value : float,
