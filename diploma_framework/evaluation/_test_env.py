@@ -17,8 +17,8 @@ def test_env(env : Union[object, str],
     if isinstance(env, str):
         env = gym.make(env)
     else:
-        #env = copy.deepcopy(env)
-        pass
+        env = copy.deepcopy(env)
+        #pass
     state = env.reset()
     if vis: env.render()
     done = False
