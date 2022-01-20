@@ -67,6 +67,7 @@ class A3C(DeepRLAlgorithm):
         logger.info('Initializing training')
         manager = mp.Manager()
         test_rewards = manager.list()
+        test_frames = manager.list()
         actor_loss = manager.list()
         critic_loss = manager.list()
 
@@ -76,7 +77,7 @@ class A3C(DeepRLAlgorithm):
 
         with tqdm(total = self.max_frames) as pbar:
             for i in range(self.n_workers):
-                p = mp.Process(target=self._worker, args=(i, test_rewards, actor_loss, critic_loss, 
+                p = mp.Process(target=self._worker, args=(i, test_rewards, test_frames, actor_loss, critic_loss, 
                                                         frame_counter, eval_window, n_evaluations, early_stopping,
                                                         reward_threshold, pbar))
                 p.start()
@@ -92,6 +93,7 @@ class A3C(DeepRLAlgorithm):
     def _worker(self,
                 worker_id : int,
                 test_rewards : list,
+                test_frames : list,
                 actor_losses : list,
                 critic_losses : list,
                 frame_counter : mp.Value,
@@ -145,12 +147,13 @@ class A3C(DeepRLAlgorithm):
                 frame_counter.value += 1
                 if frame_counter.value % eval_window == 0:
                     counter = frame_counter.value
-                    test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
-                    test_rewards.append(test_reward)
+                    reward_metric, frame_metric = self.evaluate(n_evaluations)
+                    test_rewards.append(reward_metric)
+                    test_frames.append(frame_metric)
                     pbar.n = int(counter / eval_window * 1000)
                     pbar.refresh()
-                    pbar.set_description(f'Cumulative reward {test_reward}')
-                    if test_reward > reward_threshold and early_stopping: 
+                    pbar.set_description(f'Reward {reward_metric} - Frames {frame_metric}')
+                    if reward_metric > reward_threshold and early_stopping: 
                         logger.info('Early stopping criteria met')
                         self.early_stop.value = True
                 test_lock.release()
