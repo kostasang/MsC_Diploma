@@ -77,33 +77,37 @@ class CNNActorCritic(nn.Module):
         self.conv_core = nn.Sequential(
             nn.Conv2d(3, 32, 8, 2),
             nn.ReLU(),
-            nn.MaxPool2d(4, 2),
             nn.BatchNorm2d(32),
-            nn.Conv2d(32, 32, 4),
+            nn.Conv2d(32, 32, 8, 2),
             nn.ReLU(),
-            nn.MaxPool2d(4, 2),
             nn.BatchNorm2d(32),
-            nn.Conv2d(32, 32, 4),
+            nn.Conv2d(32, 16, 8, 2),
             nn.ReLU(),
-            nn.MaxPool2d(4, 2),
-            nn.BatchNorm2d(32, 32, 4, 1),
+            nn.BatchNorm2d(16),
+            nn.Conv2d(16, 8, 8, 2),
             nn.ReLU(),
-            nn.MaxPool2d(4, 2),
-            nn.BatchNorm2d(32),
-            nn.Flatten()
+            nn.BatchNorm2d(8),
+            nn.Flatten(),
+            nn.Dropout(0.3)
         ).to(self.device)
         
         self.actor_head = nn.Sequential(
-            nn.Linear(288,128),
+            nn.Linear(512,256),
             nn.ReLU(),
-            nn.Linear(128, n_output)
+            nn.Linear(256, n_output)
         ).to(device=self.device)
 
         self.critic_head = nn.Sequential(
-            nn.Linear(288, 128),
+            nn.Linear(512, 256),
             nn.ReLU(),
-            nn.Linear(128, 1)
+            nn.Linear(256, 1)
         ).to(device=self.device)
+        self.apply(self.init_weights)
+
+    def init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            nn.init.normal_(m.weight, mean=0., std=0.1)
+            nn.init.constant_(m.bias, 0.1)
 
     def forward(self, x):
         x = torch.permute(x, (0, 3, 1, 2))  # Place channel axis in correct position
