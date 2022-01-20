@@ -53,6 +53,7 @@ class Reinforce(DeepRLAlgorithm):
 
         logger.info('Initializing training')
         test_rewards = []
+        test_frames = []
         frame_idx = 0
         early_stop = False
 
@@ -74,11 +75,12 @@ class Reinforce(DeepRLAlgorithm):
                     transitions.append((prev_state, action, cumulative_reward))
 
                     if frame_idx % eval_window == 0:
-                        test_reward = np.mean([test_env(self.env, self.model, vis=False) for _ in range(n_evaluations)])
-                        test_rewards.append(test_reward)
+                        reward_metric, frame_metric = self.evaluate(n_evaluations)
+                        test_rewards.append(reward_metric)
+                        test_frames.append(frame_metric)
                         pbar.update(eval_window)
-                        pbar.set_description(f'Cumulative reward {test_reward}')
-                        if test_reward > reward_threshold and early_stopping: 
+                        pbar.set_description(f'Reward {reward_metric} - Frames {frame_metric}')
+                        if reward_metric > reward_threshold and early_stopping: 
                             early_stop = True
                             logger.info('Early stopping criteria met')
 
