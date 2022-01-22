@@ -1,5 +1,4 @@
 from typing import Union
-
 import torch, gym, copy
 import torch.nn as nn
 
@@ -18,7 +17,7 @@ def test_env(env : Union[object, str],
         env = gym.make(env)
     else:
         env = copy.deepcopy(env)
-        #pass
+
     state = env.reset()
     if vis: env.render()
     done = False
