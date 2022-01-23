@@ -63,10 +63,11 @@ class StackedFramePPO(DeepRLAlgorithm):
         self.stacked_frames = stacked_frames
 
     def run(self, 
-            eval_window : int = 1000,
-            n_evaluations : int = 10,
-            early_stopping : bool = True,
-            reward_threshold : float = 197.5,
+            eval_window : int,
+            n_evaluations : int,
+            early_stopping : bool,
+            reward_threshold : float,
+            frames_threshold : float,
             test_function : Union[Callable, None] = None) -> list :
 
         """
@@ -126,7 +127,7 @@ class StackedFramePPO(DeepRLAlgorithm):
                         test_frames.append(frame_metric)
                         pbar.update(eval_window)
                         pbar.set_description(f'Reward {reward_metric} - Frames {frame_metric}')
-                        if reward_metric > reward_threshold and early_stopping: 
+                        if (reward_metric > reward_threshold or frame_metric > frames_threshold) and early_stopping: 
                             early_stop = True
                             logger.info('Early stopping criteria met')
 
