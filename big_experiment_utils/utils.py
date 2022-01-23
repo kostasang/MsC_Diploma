@@ -1,7 +1,7 @@
 from gym_duckietown.wrappers import DiscreteWrapper
 from gym_duckietown.simulator import Simulator
+from big_experiment_utils.wrappers import *
 from typing import Union
-from wrappers import *
 from collections import deque
 
 import torch
