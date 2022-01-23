@@ -88,7 +88,7 @@ class A3C(DeepRLAlgorithm):
             for p in processes:
                 p.terminate()
         
-        return test_rewards, actor_loss, critic_loss
+        return test_rewards, test_frames, actor_loss, critic_loss
 
     def _worker(self,
                 worker_id : int,
