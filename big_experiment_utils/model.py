@@ -25,7 +25,6 @@ class CNNActorCritic(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             nn.Flatten(),
-            nn.Dropout(0.3)
         ).to(self.device)
         
         self.actor_head = nn.Sequential(
