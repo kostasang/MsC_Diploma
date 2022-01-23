@@ -5,10 +5,8 @@ PPO/
 
 experiment_small.py
 experiment_big.py
-wrappers.py
 
 test.py
-infer_vectors.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
