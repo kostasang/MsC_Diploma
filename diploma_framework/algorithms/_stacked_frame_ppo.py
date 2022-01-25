@@ -142,11 +142,17 @@ class StackedFramePPO(DeepRLAlgorithm):
                 returns = self._compute_returns(next_value, rewards, masks, values)
 
                 returns   = torch.cat(returns).detach()
+                # Normalize returns by subtracting mean and deviding with std
+                returns  = (returns - torch.mean(returns)) / (torch.std(returns) + 1e-10)
                 log_probs = torch.cat(log_probs).detach()
                 values    = torch.cat(values).detach()
+                # Normalize returns by subtracting mean and deviding with std
+                values = (values - torch.mean(values)) / (torch.std(values) + 1e-10)
                 states    = torch.cat(states, dim=0)
                 actions   = torch.LongTensor(actions)
                 advantage = returns -  values
+                # Normalize advantages by subtracting mean and deviding with std
+                advantage  =(advantage - torch.mean(advantage)) / (torch.std(advantage) + 1e-10)
 
                 self._update_params(states, actions, log_probs, returns, advantage)
 
@@ -207,6 +213,7 @@ class StackedFramePPO(DeepRLAlgorithm):
             for state_batch, action_batch, old_log_probs_batch, return_batch, advantage_batch in self._get_batch(states, actions, log_probs, returns, advantages):
 
                 dist_batch, value_batch = self.model.infer_batch(state_batch)
+                value_batch = (value_batch - torch.mean(value_batch)) / (torch.std(value_batch) + 1e-10)
                 entropy = dist_batch.entropy().mean()
                 
                 new_log_probs_batch = dist_batch.log_prob(action_batch)
@@ -215,9 +222,9 @@ class StackedFramePPO(DeepRLAlgorithm):
                 surr1 = ratio*advantage_batch
                 surr2 = torch.clamp(ratio, 1-self.clip_param, 1+self.clip_param) * advantage_batch
 
-                actor_loss = -torch.min(surr1, surr2).mean()
+                actor_loss = -torch.min(surr1, surr2).mean() 
                 critic_loss = (return_batch - value_batch).pow(2).mean()
-
+        
                 loss = self.critic_weight*critic_loss + self.actor_weight*actor_loss - self.entropy_weight * entropy
 
                 self.optimizer.zero_grad()
