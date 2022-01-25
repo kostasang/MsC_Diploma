@@ -1,4 +1,3 @@
-from gym_duckietown.wrappers import DiscreteWrapper
 from gym_duckietown.simulator import Simulator
 from big_experiment_utils.wrappers import *
 from typing import Union
@@ -17,15 +16,13 @@ def test_duckietown(env : Union[object, str],
     env = Simulator(
         seed=None,  # random seed
         map_name="loop_empty",
-        max_steps=500001,  # we don't want the gym to reset itself
+        max_steps=10_000,  # we don't want the gym to reset itself
         domain_rand=False,
-        accept_start_angle_deg=4,  # start close to straight
-        full_transparency=True,
         distortion=False,
         camera_width=80,
         camera_height=60
     )
-    env = DtRewardWrapper(env)
+    #env = DtRewardWrapper(env)
     env = DiscreteWrapper(env)
 
     frame = env.reset()
