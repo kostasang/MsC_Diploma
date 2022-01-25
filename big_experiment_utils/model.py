@@ -16,34 +16,34 @@ class CNNActorCritic(nn.Module):
 
         self.conv_core = nn.Sequential(
             nn.Conv2d(15, 32, 3),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(32, 32, 3),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(32, 64, 3),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.MaxPool2d(2, 2),
             nn.Flatten(),
         ).to(self.device)
         
         self.actor_head = nn.Sequential(
             nn.Linear(2560,128),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(128, n_output)
         ).to(device=self.device)
 
         self.critic_head = nn.Sequential(
             nn.Linear(2560, 128),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(128, 1)
         ).to(device=self.device)
         self.apply(self.init_weights)
 
     def init_weights(self, m):
-        if isinstance(m, nn.Linear):
-            nn.init.normal_(m.weight, mean=0., std=0.1)
-            nn.init.constant_(m.bias, 0.1)
+        if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
+            nn.init.normal_(m.weight, mean=0., std=0.3)
+            nn.init.constant_(m.bias, 0.3)
 
     def forward(self, x):
         x = torch.permute(x, (0, 3, 1, 2))  # Place channel axis in correct position
