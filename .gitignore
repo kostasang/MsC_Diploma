@@ -4,7 +4,6 @@ PPO/
 .vscode/
 
 experiment_small.py
-experiment_big.py
 
 test.py
 
