@@ -7,7 +7,7 @@ import torch.nn as nn
 import numpy as np
 
 from tqdm import tqdm
-from typing import Callable, Union
+from typing import Callable, List, Tuple, Union
 from collections import deque
 
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
@@ -68,7 +68,8 @@ class StackedFramePPO(DeepRLAlgorithm):
             early_stopping : bool,
             reward_threshold : float,
             frames_threshold : float,
-            test_function : Union[Callable, None] = None) -> list :
+            best_model_path : str,
+            test_function : Union[Callable, None] = None) -> Tuple[List[float]] :
 
         """
         Run the PPO algorithm with hyperparameters specified in arguments.
@@ -84,6 +85,7 @@ class StackedFramePPO(DeepRLAlgorithm):
         test_frames = []
         frame_idx = 0
         early_stop = False
+        best_reward = float('-inf')
 
         with tqdm(total = self.max_frames) as pbar:
             while frame_idx < self.max_frames and not early_stop:
@@ -127,13 +129,15 @@ class StackedFramePPO(DeepRLAlgorithm):
                         test_frames.append(frame_metric)
                         pbar.update(eval_window)
                         pbar.set_description(f'Reward {reward_metric} - Frames {frame_metric}')
+                        if reward_metric > best_reward:
+                            self.save_model(best_model_path)
+                            best_reward = reward_metric
                         if (reward_metric > reward_threshold or frame_metric > frames_threshold) and early_stopping: 
                             early_stop = True
                             logger.info('Early stopping criteria met')
 
-
                     if done: break
-
+                
                 next_frame = torch.FloatTensor(next_frame).unsqueeze(0)
                 stacked_frames.append(next_frame)
                 next_state = torch.cat(tuple(stacked_frames), dim=-1)
@@ -225,7 +229,7 @@ class StackedFramePPO(DeepRLAlgorithm):
                 actor_loss = -torch.min(surr1, surr2).mean() 
                 critic_loss = (return_batch - value_batch).pow(2).mean()
         
-                loss = self.critic_weight*critic_loss + self.actor_weight*actor_loss - self.entropy_weight * entropy
+                loss = (self.critic_weight*critic_loss) + (self.actor_weight*actor_loss) - (self.entropy_weight * entropy)
 
                 self.optimizer.zero_grad()
                 loss.backward()

@@ -16,13 +16,15 @@ def test_duckietown(env : Union[object, str],
     env = Simulator(
         seed=None,  # random seed
         map_name="loop_empty",
-        max_steps=10_000,  # we don't want the gym to reset itself
+        max_steps=3_500,  # we don't want the gym to reset itself
         domain_rand=False,
         distortion=False,
         camera_width=80,
-        camera_height=60
+        camera_height=60,
+        draw_curve=True,
+        accept_start_angle_deg=4
     )
-    #env = DtRewardWrapper(env)
+    env = DtRewardWrapper(env)
     env = DiscreteWrapper(env)
 
     frame = env.reset()

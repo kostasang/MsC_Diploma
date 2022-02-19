@@ -8,11 +8,11 @@ class DtRewardWrapper(gym.RewardWrapper):
 
     def reward(self, reward):
         if reward == -1000:
-            reward = -10
-        elif reward > 0:
-            pass
-        else:
-            reward = 0
+            reward = -40
+        elif reward < 0:
+            reward = reward * 10
+        elif reward >=0:
+            reward = reward * 10
         return reward
 
 class DiscreteWrapper(gym.ActionWrapper):
@@ -28,13 +28,13 @@ class DiscreteWrapper(gym.ActionWrapper):
     def action(self, action):
         # Turn left
         if action == 0:
-            vels = [-0.6, 0.6]
+            vels = [0.04, 0.4]
         # Turn right
         elif action == 1:
-            vels = [0.6, -0.6]
+            vels = [0.4, 0.04]
         # Go forward
         elif action == 2:
-            vels = [0.7, 0.7]
+            vels = [0.3, 0.3]
         else:
             assert False, "unknown action"
         return np.array(vels)
