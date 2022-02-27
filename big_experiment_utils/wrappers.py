@@ -3,6 +3,10 @@ from gym import spaces
 import numpy as np
 
 class DtRewardWrapper(gym.RewardWrapper):
+    """
+    Wrapper for modifying rewards to follow what is implemented in
+    https://arxiv.org/abs/2009.11212
+    """
     def __init__(self, env):
         super(DtRewardWrapper, self).__init__(env)
 
