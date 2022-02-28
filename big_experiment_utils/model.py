@@ -50,13 +50,6 @@ class CNNActorCritic(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(128, 1)
         ).to(device=self.device)
-        self.apply(self.init_weights)
-
-    def init_weights(self, m):
-        return 
-        if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-            nn.init.normal_(m.weight, mean=0., std=0.5)
-            nn.init.constant_(m.bias, 0.5)
 
     def forward(self, x):
         x = torch.permute(x, (0, 3, 1, 2))  # Place channel axis in correct position
