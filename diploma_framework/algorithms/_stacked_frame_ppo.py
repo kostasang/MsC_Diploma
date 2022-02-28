@@ -69,6 +69,7 @@ class StackedFramePPO(DeepRLAlgorithm):
             reward_threshold : float,
             frames_threshold : float,
             best_model_path : str,
+            return_best : bool = True,
             test_function : Union[Callable, None] = None) -> Tuple[List[float]] :
 
         """
@@ -86,6 +87,7 @@ class StackedFramePPO(DeepRLAlgorithm):
         frame_idx = 0
         early_stop = False
         best_reward = float('-inf')
+        best_model = None
 
         with tqdm(total = self.max_frames) as pbar:
             while frame_idx < self.max_frames and not early_stop:
@@ -129,9 +131,10 @@ class StackedFramePPO(DeepRLAlgorithm):
                         test_frames.append(frame_metric)
                         pbar.update(eval_window)
                         pbar.set_description(f'Reward {reward_metric} - Frames {frame_metric}')
-                        if reward_metric > best_reward:
-                            self.save_model(best_model_path)
+                        if return_best and reward_metric > best_reward:
+                            best_model = self.model
                             best_reward = reward_metric
+                            logger.info(f'Current best at frame {int(frame_idx)} with reward {best_reward:.2f}')
                         if (reward_metric > reward_threshold or frame_metric > frames_threshold) and early_stopping: 
                             early_stop = True
                             logger.info('Early stopping criteria met')
@@ -159,6 +162,9 @@ class StackedFramePPO(DeepRLAlgorithm):
                 advantage  =(advantage - torch.mean(advantage)) / (torch.std(advantage) + 1e-10)
 
                 self._update_params(states, actions, log_probs, returns, advantage)
+        
+        if return_best:
+            self.model = best_model
 
         return test_rewards, test_frames
 
