@@ -7,7 +7,6 @@ import torch.nn as nn
 import torch.optim as optim
 
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
-from diploma_framework.evaluation import test_env
 
 logger = logging.getLogger('deepRL')
 

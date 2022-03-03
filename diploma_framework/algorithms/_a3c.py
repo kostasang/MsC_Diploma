@@ -1,14 +1,11 @@
 import torch, gym, copy, logging
-import numpy as np, multiprocessing as mp
+import multiprocessing as mp
+import torch.nn as nn
+import torch.optim as optim
 
 from tqdm import tqdm
 from typing import Union
-import torch.nn as nn
-import torch.optim as optim
-from torch.nn import functional as F 
-
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
-from diploma_framework.evaluation import test_env
 
 test_lock = mp.Lock()
 

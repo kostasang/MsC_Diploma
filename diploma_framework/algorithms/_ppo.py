@@ -1,4 +1,3 @@
-
 import gym, torch, logging
 import torch.optim as optim
 import torch.nn as nn
@@ -6,9 +5,7 @@ import numpy as np
 
 from tqdm import tqdm
 from typing import Union
-
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
-from diploma_framework.evaluation import test_env
 
 logger = logging.getLogger('deepRL')
 

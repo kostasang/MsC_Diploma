@@ -6,7 +6,6 @@ import numpy as np
 from tqdm import tqdm
 from typing import Callable, List, Tuple, Union
 from collections import deque
-
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
 
 

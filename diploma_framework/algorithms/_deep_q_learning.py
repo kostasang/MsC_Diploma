@@ -1,12 +1,11 @@
 import torch, gym, copy, math, random, logging
 import numpy as np
+import torch.nn as nn
+import torch.optim as optim
 
 from tqdm import tqdm
 from collections import deque
 from typing import Union
-import torch.nn as nn
-import torch.optim as optim
-
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
 
 logger = logging.getLogger('deepRL')
