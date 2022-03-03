@@ -1,7 +1,4 @@
-
-from ast import Call
-from decimal import Clamped
-import gym, torch, logging
+import gym, torch, logging, copy
 import torch.optim as optim
 import torch.nn as nn
 import numpy as np
@@ -16,32 +13,30 @@ from diploma_framework.algorithms._generic import DeepRLAlgorithm
 logger = logging.getLogger('deepRL')
 
 class StackedFramePPO(DeepRLAlgorithm):
-
     """
     Implements PPO algorithm but considers as one state the selected
     number of the last frames. This is used for converting an environment
     that cannot be modeled as a Markov Decision Process into a Markov
     Decision Process. Normally used when the environment provides as state
     the whole displayef frame.
-
     """
 
     def __init__(self, 
-                 environment : Union[str, object],
-                 model : nn.Module,
-                 lr : float = 1e-03,
-                 batch_size : int = 32,
-                 epochs : int = 4,
-                 max_frames  : int = 150_000,
-                 num_steps : int = 100,
-                 clip_param : float = 0.2,
-                 gamma : float = 0.99,
-                 lamb : float = 1.0,
-                 actor_weight : float = 1.0,
-                 critic_weight : float = 0.5,
-                 entropy_weight : float = 0.001,
-                 stacked_frames : int = 5
-                ):
+                 environment: Union[str, object],
+                 model: nn.Module,
+                 lr: float = 1e-03,
+                 batch_size: int = 32,
+                 epochs: int = 4,
+                 max_frames : int = 150_000,
+                 num_steps: int = 100,
+                 clip_param: float = 0.2,
+                 gamma: float = 0.99,
+                 lamb: float = 1.0,
+                 actor_weight: float = 1.0,
+                 critic_weight: float = 0.5,
+                 entropy_weight: float = 0.001,
+                 stacked_frames: int = 5
+                ) -> None:
 
         if isinstance(environment, str):
             self.env = gym.make(environment)
@@ -63,23 +58,19 @@ class StackedFramePPO(DeepRLAlgorithm):
         self.stacked_frames = stacked_frames
 
     def run(self, 
-            eval_window : int,
-            n_evaluations : int,
-            early_stopping : bool,
-            reward_threshold : float,
-            frames_threshold : float,
-            best_model_path : str,
-            return_best : bool = True,
-            test_function : Union[Callable, None] = None) -> Tuple[List[float]] :
-
+            eval_window: int,
+            n_evaluations: int,
+            early_stopping: bool,
+            reward_threshold: float,
+            frames_threshold: float,
+            return_best: bool = True,
+            test_function: Union[Callable, None] = None) -> Tuple[List[float]] :
         """
         Run the PPO algorithm with hyperparameters specified in arguments.
         Returns list of test rewards throughout the agent's training loop.
 
         eval_window : number of frames between each evaluation
-
         """
-
         logger.info('Initializing training')
 
         test_rewards = []
@@ -132,7 +123,7 @@ class StackedFramePPO(DeepRLAlgorithm):
                         pbar.update(eval_window)
                         pbar.set_description(f'Reward {reward_metric} - Frames {frame_metric}')
                         if return_best and reward_metric > best_reward:
-                            best_model = self.model
+                            best_model = copy.deepcopy(self.model)
                             best_reward = reward_metric
                             logger.info(f'Current best at frame {int(frame_idx)} with reward {best_reward:.2f}')
                         if (reward_metric > reward_threshold or frame_metric > frames_threshold) and early_stopping: 
@@ -169,16 +160,13 @@ class StackedFramePPO(DeepRLAlgorithm):
         return test_rewards, test_frames
 
     def _compute_returns(self, 
-                    next_value : float,
-                    rewards : list,
-                    masks : list,
-                    values : list) -> list :
-
+                    next_value: float,
+                    rewards: list,
+                    masks: list,
+                    values: list) -> list :
         """
         Calculates return at each time step. Uses delta presented in PPO paper.
-
         """
-
         values = values + [next_value]
         gae = 0
         returns = []
@@ -191,34 +179,29 @@ class StackedFramePPO(DeepRLAlgorithm):
         return returns
 
     def _get_batch(self,
-              states : np.ndarray,
-              actions : np.ndarray,
-              log_probs : np.ndarray,
-              returns : np.ndarray,
-              advantage : np.ndarray) -> tuple:
-
+              states: np.ndarray,
+              actions: np.ndarray,
+              log_probs: np.ndarray,
+              returns: np.ndarray,
+              advantage: np.ndarray) -> tuple:
         """
         Responsible for sampling a random batch out of the total saved data.
         Returns sampled states, actions, log_probs, returns and advantages
         """
-
         total_experiences = states.size(0)
         for _ in range(total_experiences // self.batch_size):
             selections = np.random.randint(0, total_experiences, self.batch_size)
             yield states[selections,:], actions[selections], log_probs[selections], returns[selections,:], advantage[selections, :]
 
     def _update_params(self, 
-                  states : np.ndarray, 
-                  actions : np.ndarray,
-                  log_probs : np.ndarray,
-                  returns : np.ndarray,
-                  advantages : np.ndarray) -> None:
-    
+                  states: np.ndarray, 
+                  actions: np.ndarray,
+                  log_probs: np.ndarray,
+                  returns: np.ndarray,
+                  advantages: np.ndarray) -> None:
         """
         Performs the basic parameter update of PPO algorithm
-        
         """
-
         for _ in range(self.epochs):
             for state_batch, action_batch, old_log_probs_batch, return_batch, advantage_batch in self._get_batch(states, actions, log_probs, returns, advantages):
 

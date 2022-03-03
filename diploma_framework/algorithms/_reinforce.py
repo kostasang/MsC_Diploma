@@ -12,19 +12,17 @@ from diploma_framework.evaluation import test_env
 logger = logging.getLogger('deepRL')
 
 class Reinforce(DeepRLAlgorithm):
-
     """
     Class that implements REINFORCE algorithm
-
     """
 
     def __init__(self,
-                environment : Union[object, str],
-                model : nn.Module,
-                lr : float = 1e-03,
-                max_frames : int = 150_000,
-                num_steps : int = 150,
-                gamma : float = 0.99) -> None :
+                environment: Union[object, str],
+                model: nn.Module,
+                lr: float = 1e-03,
+                max_frames: int = 150_000,
+                num_steps: int = 150,
+                gamma: float = 0.99) -> None:
 
         
         if isinstance(environment, str):
@@ -40,17 +38,14 @@ class Reinforce(DeepRLAlgorithm):
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
 
     def run(self, 
-            eval_window : int = 1000,
-            n_evaluations : int = 10,
-            early_stopping : bool = True,
-            reward_threshold : float = 197.5) -> list :
-
+            eval_window: int = 1000,
+            n_evaluations: int = 10,
+            early_stopping: bool = True,
+            reward_threshold: float = 197.5) -> list:
         """
         Run REINFORCE algorithm with hyperparameters specified in arguments.
         Returns list of test rewards throughout the agent's training loop.
-
         """
-
         logger.info('Initializing training')
         test_rewards = []
         test_frames = []
@@ -109,11 +104,10 @@ class Reinforce(DeepRLAlgorithm):
         return test_rewards
         
     def criterion(self, 
-                  predicted_probs_batch : torch.Tensor,
-                  returns_batch : torch.Tensor) -> float :
+                  predicted_probs_batch: torch.Tensor,
+                  returns_batch: torch.Tensor) -> float:
         """
         Reinforce algorithm loss function 
-
         """
         # log is already applied to predicted_probs_batch
         return -1 * torch.sum(returns_batch*predicted_probs_batch)

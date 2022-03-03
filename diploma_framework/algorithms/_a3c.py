@@ -15,22 +15,20 @@ test_lock = mp.Lock()
 logger = logging.getLogger('deepRL')
 
 class A3C(DeepRLAlgorithm):
-
     """
     Implements A3C algorithm
-
     """
 
     def __init__(self,
-                 environment : Union[object, str],
-                 model : nn.Module,
-                 n_workers : int = 8,
-                 lr : float = 1e-03,
-                 max_frames : int = 150000,
-                 num_steps : int = 200,
-                 actor_weight : float = 1,
-                 critic_weight : float = 0.1,
-                 gamma : float = 0.99) -> None :
+                 environment: Union[object, str],
+                 model: nn.Module,
+                 n_workers: int = 8,
+                 lr: float = 1e-03,
+                 max_frames: int = 150000,
+                 num_steps: int = 200,
+                 actor_weight: float = 1,
+                 critic_weight: float = 0.1,
+                 gamma: float = 0.99) -> None:
 
         if isinstance(environment, str):
             self.env = gym.make(environment)
@@ -53,24 +51,20 @@ class A3C(DeepRLAlgorithm):
         self.early_stop = mp.Value('B', False)
     
     def run(self,
-            eval_window : int = 1000,
-            n_evaluations : int = 10,
-            early_stopping : bool = True,
-            reward_threshold : float = 197.5) -> list :
-
+            eval_window: int = 1000,
+            n_evaluations: int = 10,
+            early_stopping: bool = True,
+            reward_threshold: float = 197.5) -> list:
         """
         Run A3C algorithm with hyperparameters specified in arguments.
         Returns list of test rewards throughout the agent's training loop.
-
         """
-        
         logger.info('Initializing training')
         manager = mp.Manager()
         test_rewards = manager.list()
         test_frames = manager.list()
         actor_loss = manager.list()
         critic_loss = manager.list()
-
 
         processes = []
         frame_counter = mp.Value('Q', 0)
@@ -91,23 +85,20 @@ class A3C(DeepRLAlgorithm):
         return test_rewards, test_frames, actor_loss, critic_loss
 
     def _worker(self,
-                worker_id : int,
-                test_rewards : list,
-                test_frames : list,
-                actor_losses : list,
-                critic_losses : list,
-                frame_counter : mp.Value,
-                eval_window : int,
-                n_evaluations : int,
-                early_stopping : bool,
-                reward_threshold : float,
-                pbar : tqdm):
-        
+                worker_id: int,
+                test_rewards: list,
+                test_frames: list,
+                actor_losses: list,
+                critic_losses: list,
+                frame_counter: mp.Value,
+                eval_window: int,
+                n_evaluations: int,
+                early_stopping: bool,
+                reward_threshold: float,
+                pbar: tqdm) -> None:
         """
         Process performed per different worker
-
         """
-
         env = copy.deepcopy(self.env)
         env.reset()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
@@ -158,7 +149,6 @@ class A3C(DeepRLAlgorithm):
                         self.early_stop.value = True
                 test_lock.release()
 
-
             # Do not update is criterions for early stop are met
             if not (early_stopping and self.early_stop.value):
                 actor_loss, critic_loss = self._update_params(optimizer, values, rewards, logprobs, bootstraping_value)
@@ -168,18 +158,15 @@ class A3C(DeepRLAlgorithm):
                     critic_losses.append(critic_loss.item())
    
     def _update_params(self,
-                       optimizer : torch.optim,
-                       values : list,
-                       rewards : list,
-                       logprobs : list,
-                       boostraping_value : torch.Tensor
-                       ) -> tuple :
-        
+                       optimizer: torch.optim,
+                       values: list,
+                       rewards: list,
+                       logprobs: list,
+                       boostraping_value: torch.Tensor
+                       ) -> tuple:
         """
         Implemenetaion of model's parameter update step
-
         """
-
         rewards = torch.Tensor(rewards).flip(dims=(0,)).view(-1)
         logprobs = torch.stack(logprobs).flip(dims=(0,)).view(-1)
         values = torch.stack(values).flip(dims=(0,)).view(-1)
@@ -197,15 +184,12 @@ class A3C(DeepRLAlgorithm):
         return actor_loss, critic_loss
 
     def _criterion(self, 
-                   logprobs : torch.Tensor,
-                   values : torch.Tensor,
-                   returns : torch.Tensor) -> tuple :
-        
+                   logprobs: torch.Tensor,
+                   values: torch.Tensor,
+                   returns: torch.Tensor) -> tuple:
         """
         Loss function for the A3C algorithm
-
         """
-
         actor_loss = -1*logprobs*((returns-values).detach())
         critic_loss = torch.pow(values-returns, 2)
         loss =  self.actor_weight*actor_loss.mean() + self.critic_weight*critic_loss.mean()

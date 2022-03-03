@@ -20,20 +20,20 @@ class PPO(DeepRLAlgorithm):
     """
 
     def __init__(self, 
-                 environment : Union[str, object],
-                 model : nn.Module,
-                 lr : float = 1e-03,
-                 batch_size : int = 32,
-                 epochs : int = 4,
-                 max_frames  : int = 150_000,
-                 num_steps : int = 100,
-                 clip_param : float = 0.2,
-                 gamma : float = 0.99,
-                 lamb : float = 1.0,
-                 actor_weight : float = 1.0,
-                 critic_weight : float = 0.5,
-                 entropy_weight : float = 0.001
-                ):
+                 environment: Union[str, object],
+                 model: nn.Module,
+                 lr: float = 1e-03,
+                 batch_size: int = 32,
+                 epochs: int = 4,
+                 max_frames: int = 150_000,
+                 num_steps: int = 100,
+                 clip_param: float = 0.2,
+                 gamma: float = 0.99,
+                 lamb: float = 1.0,
+                 actor_weight: float = 1.0,
+                 critic_weight: float = 0.5,
+                 entropy_weight: float = 0.001
+                ) -> None:
 
         if isinstance(environment, str):
             self.env = gym.make(environment)
@@ -54,19 +54,16 @@ class PPO(DeepRLAlgorithm):
         self.entropy_weight = entropy_weight
 
     def run(self, 
-            eval_window : int = 1000,
-            n_evaluations : int = 10,
-            early_stopping : bool = True,
-            reward_threshold : float = 197.5) -> list :
-
+            eval_window: int = 1000,
+            n_evaluations: int = 10,
+            early_stopping: bool = True,
+            reward_threshold: float = 197.5) -> list:
         """
         Run the PPO algorithm with hyperparameters specified in arguments.
         Returns list of test rewards throughout the agent's training loop.
-
+        
         eval_window : number of frames between each evaluation
-
         """
-
         logger.info('Initializing training')
 
         test_rewards = []
@@ -135,16 +132,13 @@ class PPO(DeepRLAlgorithm):
         return test_rewards, test_frames
 
     def _compute_returns(self, 
-                    next_value : float,
-                    rewards : list,
-                    masks : list,
-                    values : list) -> list :
-
+                    next_value: float,
+                    rewards: list,
+                    masks: list,
+                    values: list) -> list:
         """
         Calculates return at each time step. Uses delta presented in PPO paper.
-
         """
-
         values = values + [next_value]
         gae = 0
         returns = []
@@ -157,34 +151,29 @@ class PPO(DeepRLAlgorithm):
         return returns
 
     def _get_batch(self,
-              states : np.ndarray,
-              actions : np.ndarray,
-              log_probs : np.ndarray,
-              returns : np.ndarray,
-              advantage : np.ndarray) -> tuple:
-
+              states: np.ndarray,
+              actions: np.ndarray,
+              log_probs: np.ndarray,
+              returns: np.ndarray,
+              advantage: np.ndarray) -> tuple:
         """
         Responsible for sampling a random batch out of the total saved data.
         Returns sampled states, actions, log_probs, returns and advantages
         """
-
         total_experiences = states.size(0)
         for _ in range(total_experiences // self.batch_size):
             selections = np.random.randint(0, total_experiences, self.batch_size)
             yield states[selections,:], actions[selections], log_probs[selections], returns[selections,:], advantage[selections, :]
 
     def _update_params(self, 
-                  states : np.ndarray, 
-                  actions : np.ndarray,
-                  log_probs : np.ndarray,
-                  returns : np.ndarray,
-                  advantages : np.ndarray) -> None:
-    
+                  states: np.ndarray, 
+                  actions: np.ndarray,
+                  log_probs: np.ndarray,
+                  returns: np.ndarray,
+                  advantages: np.ndarray) -> None:
         """
         Performs the basic parameter update of PPO algorithm
-        
         """
-
         for _ in range(self.epochs):
             for state_batch, action_batch, old_log_probs_batch, return_batch, advantage_batch in self._get_batch(states, actions, log_probs, returns, advantages):
 

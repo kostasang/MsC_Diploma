@@ -8,28 +8,26 @@ import torch.nn as nn
 import torch.optim as optim
 
 from diploma_framework.algorithms._generic import DeepRLAlgorithm
-from diploma_framework.evaluation import test_env
 
 logger = logging.getLogger('deepRL')
 
 class DQN(DeepRLAlgorithm):
-
     """
     Implements Deep Q-Learning algorithm
-
     """
+
     def __init__(self,
-                 environment : Union[object, str],
-                 model : nn.Module,
-                 sync_freq : int = 1000,
-                 lr : float = 1e-03,
-                 memory_size : int = 2000,
-                 batch_size : int = 128,
-                 max_frames : int = 150_000,
-                 epsilon_start : float = 1.0,
-                 epsilon_end : float = 0.0,
-                 epsilon_decay : int = 250,
-                 gamma = 0.9) -> None :
+                 environment: Union[object, str],
+                 model: nn.Module,
+                 sync_freq: int = 1000,
+                 lr: float = 1e-03,
+                 memory_size: int = 2000,
+                 batch_size: int = 128,
+                 max_frames: int = 150_000,
+                 epsilon_start: float = 1.0,
+                 epsilon_end: float = 0.0,
+                 epsilon_decay: int = 250,
+                 gamma: float = 0.9) -> None :
         
         if isinstance(environment, str):
             self.env = gym.make(environment)
@@ -50,19 +48,15 @@ class DQN(DeepRLAlgorithm):
         self.criterion = nn.MSELoss()
         self.replay_buffer = deque(maxlen=memory_size)
         
-
     def run(self, 
-            eval_window : int = 1000,
-            n_evaluations : int = 10,
-            early_stopping : bool = True,
-            reward_threshold : float = 197.5) -> list:
-        
+            eval_window: int = 1000,
+            n_evaluations: int = 10,
+            early_stopping: bool = True,
+            reward_threshold: float = 197.5) -> list:
         """
         Run the DQN algorithm with hyperparameters specified in arguments.
         Returns list of test rewards throughout the agent's training loop.
-
         """
-
         logger.info('Initializing training')
         test_rewards = []
         test_frames = []
@@ -134,15 +128,12 @@ class DQN(DeepRLAlgorithm):
 
         return test_rewards
 
-    def _get_batch_data(self, batch : tuple) -> tuple:
-
+    def _get_batch_data(self, batch: tuple) -> tuple:
         """
         Given a batch of tuples of the form :
         (s0, a1, r1, s1, done), returns batches of the five didfferet components 
         of the initial batch
-
         """
-        
         state0_batch = []
         action_batch = []
         reward_batch = []
