@@ -1,7 +1,7 @@
-results/*
-!results/.gitkeep
-models/*
-!models/.gitkeep
+*/results/*
+!*/results/.gitkeep
+*/models/*
+!*/models/.gitkeep
 PPO/
 .vscode/
 
