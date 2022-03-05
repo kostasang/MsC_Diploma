@@ -1,7 +1,4 @@
-# Reinforcement Learning Framework
-
-As part of my MsC's thesis, a framework that implements Deep Reinforcement Learning algorithms (DQN, REINFORCE, A3C, PPO) has been developed. Its goal is to enable fast experimentation with different neural network models and different environments without the need of re-implementing the code for each deep reinforcement learning algorithm all over again. The framework is build on Pytorch and any environment following the OpenAI gym API paradigm can be used.
-
+# Master Thesis
 
 ## Installation 
 
@@ -16,7 +13,11 @@ pip3 install -r requirements.txt
 ```
 For recreating the results for duckieTown environment install the corresponding repository following instructions from [here](https://github.com/duckietown/gym-duckietown).
 
-## Usage 
+## Learning & Reinforcement Learning Framework
+
+As part of my MsC's thesis, a framework that implements Deep Reinforcement Learning algorithms (DQN, REINFORCE, A3C, PPO) has been developed. Its goal is to enable fast experimentation with different neural network models and different environments without the need of re-implementing the code for each deep reinforcement learning algorithm all over again. The framework is build on Pytorch and any environment following the OpenAI gym API paradigm can be used.
+
+### Usage 
 
 In the following code section, an example for running PPO algorithm on CartPole environment using a self-defined Actor-Critic model is illustrated. The model must implement an `infer_step()`, `infer_batch()` and `infer_action()` methods that output thepolicy distributions, values and action calculated by the model for a single or batch input. Each algorithm expects the input model to implement these three methods.
 
@@ -70,3 +71,5 @@ model = ActorCritic()
 ppo= PPO(env, model, lr=1e-03, num_steps=150, max_frames=500_000, batch_size=4)
 rewards, n_frames, _, _ = ppo.run(early_stopping=False)
 ```
+
+## Model Acceleration
