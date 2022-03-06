@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt, logging, joblib
-
-from pyglet.window import key
-
 from gym_duckietown.simulator import Simulator
-
 from diploma_framework.algorithms import StackedFramePPO
+
 from big_experiment_utils.utils import test_duckietown, test_duckietown_pedestrians
 from big_experiment_utils.wrappers import *
 from big_experiment_utils.model import CNNActorCritic
@@ -31,10 +28,10 @@ model = joblib.load('models/golden/direct/duckieTown_PPO_simple.joblib')
 
 alg = StackedFramePPO(environment=env,
           model=model,
-          lr=2e-05,
+          lr=5e-06,
           batch_size=8,
           epochs=3,
-          max_frames=800_000,
+          max_frames=1_500_000,
           num_steps=500,
           clip_param=0.2,
           gamma=0.99,
@@ -44,7 +41,7 @@ alg = StackedFramePPO(environment=env,
           entropy_weight=0.01,
           stacked_frames=5)
 
-rewards_ppo, frames_ppo = alg.run(eval_window=5_000,
+rewards_ppo, frames_ppo = alg.run(eval_window=10_000,
                                   n_evaluations=5,
                                   early_stopping=True,
                                   reward_threshold=35_000,
