@@ -84,6 +84,10 @@ def collect_states(env,
         n_steps += 1
     return states
 
+def collect_random_states(n_states):
+    """Returns list of random states"""
+    return [torch.randint(0,256, size=(1,60,80,15), dtype=torch.float32, ) for _ in range(n_states)]
+
 def time_inference(states, model):
     """Calculate average inference time given list of collected states"""
     timer = Timer()
