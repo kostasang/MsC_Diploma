@@ -1,9 +1,9 @@
 import time, sys, torch, joblib, numpy as np
 from collections import deque
-from gym_duckietown.simulator import Simulator
+#from gym_duckietown.simulator import Simulator
 
-sys.argv.append('../../learning/src')
-from big_experiment_utils.wrappers import DiscreteWrapper, DtRewardWrapper
+#sys.argv.append('../../learning/src')
+#from big_experiment_utils.wrappers import DiscreteWrapper, DtRewardWrapper
 
 class Timer():
     """
@@ -38,7 +38,7 @@ class Timer():
     def get_laps(self):
         """Returns number of laps"""
         return self.n_laps
-
+'''
 def create_environment():
     """Return environment for experiments"""
     env = Simulator(
@@ -83,6 +83,7 @@ def collect_states(env,
         frame = next_frame
         n_steps += 1
     return states
+'''
 
 def collect_random_states(n_states):
     """Returns list of random states"""
