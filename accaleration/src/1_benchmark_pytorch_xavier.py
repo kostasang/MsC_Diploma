@@ -5,7 +5,7 @@ from model import Actor
 if __name__ == "__main__":
     
 
-    states = collect_random_states(n_states=1000)
+    states = collect_random_states(n_states=3500)
 
     # Benchmark cpu inference
     model = Actor('cpu')
