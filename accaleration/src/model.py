@@ -1,6 +1,26 @@
-import torch
+import torch, onnxruntime
+import numpy as np
 import torch.nn.functional as F
 from torch import nn
+
+class ONNXActor():
+    # Implements actor using ONNX runtime
+    
+    def __init__(self, onnx_path, providers):
+        # Initiliaze model
+        self.ort_session = onnxruntime.InferenceSession(onnx_path, providers=providers)
+        self.ort_session.disable_fallback()
+    
+    def forward(self, x):
+        # Implements forward pass of model
+        output = self.ort_session.run(None, {'input' : x.numpy().astype(np.float32)})[0]
+        return torch.Tensor(output)
+    
+    def infer_action(self, x):
+        # Utilizes torch distributions to return an action
+        dist_probs = self.forward(x)
+        dist = torch.distributions.Categorical(logits=dist_probs)
+        return dist.sample().numpy()[0]
 
 class Actor(torch.nn.Module):
     #Implements the inference of only the actor model coming from the acotr critic object
