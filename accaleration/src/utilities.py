@@ -1,4 +1,4 @@
-import time, sys, torch, joblib, numpy as np
+import time, sys, torch, numpy as np
 from collections import deque
 #from gym_duckietown.simulator import Simulator
 
@@ -85,10 +85,11 @@ def collect_states(env,
     return states
 '''
 
-def collect_random_states(n_states):
+def collect_random_states(n_states, dtype=torch.float32):
     """Returns list of random states"""
-    return [torch.randint(0,256, size=(1,60,80,15), dtype=torch.float32, ) for _ in range(n_states)]
+    return [torch.randint(0,256, size=(1,60,80,15), dtype=dtype, ) for _ in range(n_states)]
 
+@torch.inference_mode()
 def time_inference(states, model):
     """Calculate average inference time given list of collected states"""
     timer = Timer()
