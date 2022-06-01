@@ -16,6 +16,9 @@ class ONNXActor():
         output = self.ort_session.run(None, {'input' : x.numpy().astype(np.float32)})[0]
         return torch.Tensor(output)
     
+    def debug_forward(self, x):
+        return np.e**self.forward(x)
+
     def infer_action(self, x):
         # Utilizes torch distributions to return an action
         dist_probs = self.forward(x)
@@ -64,6 +67,9 @@ class Actor(torch.nn.Module):
         visual_repr = self.conv_core(x).squeeze(-1).squeeze(-1)
         dist = F.log_softmax(self.actor_head(visual_repr), dim=1)
         return dist
+
+    def debug_forward(self, x):
+        return np.e**self.forward(x)
 
     def infer_action(self, x):
         # Utilizes torch distributions to return an action
