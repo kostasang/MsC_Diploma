@@ -5,10 +5,10 @@
 PPO/
 .vscode/
 
-acceleration/xavier/models
-!acceleration/xavier/results/.gitkeep
+acceleration/xavier/models/*
+!acceleration/xavier/models/.gitkeep
 
-acceleration/xavier/results
+acceleration/xavier/results/*
 !acceleration/xavier/results/.gitkeep
 
 experiment_small.py
