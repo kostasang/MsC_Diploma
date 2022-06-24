@@ -15,6 +15,12 @@ acceleration/xavier/results/*
 acceleration/zcu104/results/*
 !acceleration/zcu104/results/.gitkeep
 
+acceleration/zcu104/vitis_build/data/*
+!acceleration/zcu104/vitis_build/data/.gitkeep
+
+acceleration/zcu104/vitis_build/models/*
+!acceleration/zcu104/vitis_build/models/.gitkeep
+
 experiment_small.py
 
 test.py
