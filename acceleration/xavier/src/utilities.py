@@ -1,9 +1,5 @@
-import time, sys, torch, numpy as np
+import time, sys, torch, json, numpy as np
 from collections import deque
-#from gym_duckietown.simulator import Simulator
-
-#sys.argv.append('../../learning/src')
-#from big_experiment_utils.wrappers import DiscreteWrapper, DtRewardWrapper
 
 class Timer():
     """
@@ -22,8 +18,10 @@ class Timer():
     
     def stop(self):
         """Stops timer"""
-        self.total_time += (time.perf_counter() - self.t0)
+        dt = (time.perf_counter() - self.t0)
+        self.total_time += dt
         self.n_laps += 1
+        return dt
 
     def reset(self):
         """Resets timer"""
@@ -38,52 +36,6 @@ class Timer():
     def get_laps(self):
         """Returns number of laps"""
         return self.n_laps
-'''
-def create_environment():
-    """Return environment for experiments"""
-    env = Simulator(
-        seed=None,  # random seed
-        map_name="loop_empty",
-        max_steps=3_500,  
-        domain_rand=False,
-        distortion=False,
-        camera_width=80,
-        camera_height=60,
-        draw_curve=True,
-        accept_start_angle_deg=4
-        )
-    env = DtRewardWrapper(env) 
-    env = DiscreteWrapper(env)
-    return env
-
-def collect_states(env, 
-                   golden_model_path, 
-                   max_steps=1000):
-    """
-    Given the golden model and the environment, this function 
-    collects states and returns them to a list for later use
-    """
-    golden_model = joblib.load(golden_model_path)
-    states = []
-    frame = env.reset()
-    stacked_frames = deque([torch.zeros(size=frame.shape).unsqueeze(0)]*5,
-                            maxlen=5)
-    env.render()
-
-    done = False
-    n_steps = 0
-    while not done and n_steps < max_steps:    
-        frame = torch.FloatTensor(frame).unsqueeze(0)
-        stacked_frames.append(frame)
-        state = torch.cat(tuple(stacked_frames), dim=-1)
-        action = golden_model.infer_action(state)
-        states.append(state)
-        next_frame, reward, done, _ = env.step(action)
-        env.render()
-        frame = next_frame
-        n_steps += 1
-    return states
-'''
 
 def collect_random_states(n_states, dtype=torch.float32):
     """Returns list of random states"""
@@ -92,12 +44,18 @@ def collect_random_states(n_states, dtype=torch.float32):
 @torch.inference_mode()
 def time_inference(states, model):
     """Calculate average inference time given list of collected states"""
+    durations = []
     timer = Timer()
     for state in states:
         timer.start()
         _ = model.infer_action(state)
-        timer.stop()
-        
-    print(f'Average inference time {timer.get_average_time()*1000}ms calculated on {timer.get_laps()} frames')
-    return timer.get_average_time(), timer.get_laps()
+        dt = timer.stop()
+        durations.append(dt)
 
+    print(f'Average inference time {timer.get_average_time()*1000}ms calculated on {timer.get_laps()} frames')
+    return durations
+
+def log_runs(durations_list, dest_file):
+    """Save list of run durations into json"""
+    with open(dest_file, 'w') as f:
+        json.dump(durations_list, f)
