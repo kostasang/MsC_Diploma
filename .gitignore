@@ -7,9 +7,19 @@ PPO/
 
 acceleration/xavier/models/*
 !acceleration/xavier/models/.gitkeep
+acceleration/zcu104/models/*
+!acceleration/zcu104/models/.gitkeep
 
 acceleration/xavier/results/*
 !acceleration/xavier/results/.gitkeep
+acceleration/zcu104/results/*
+!acceleration/zcu104/results/.gitkeep
+
+acceleration/zcu104/vitis_build/data/*
+!acceleration/zcu104/vitis_build/data/.gitkeep
+
+acceleration/zcu104/vitis_build/models/*
+!acceleration/zcu104/vitis_build/models/.gitkeep
 
 experiment_small.py
 
