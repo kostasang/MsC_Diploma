@@ -1,4 +1,4 @@
-import time, sys, torch, numpy as np
+import time, sys, torch, json, numpy as np
 from collections import deque
 
 class Timer():
@@ -18,8 +18,10 @@ class Timer():
     
     def stop(self):
         """Stops timer"""
-        self.total_time += (time.perf_counter() - self.t0)
+        dt = (time.perf_counter() - self.t0)
+        self.total_time += dt
         self.n_laps += 1
+        return dt
 
     def reset(self):
         """Resets timer"""
@@ -41,12 +43,19 @@ def collect_random_states(n_states, dtype=torch.float32):
 
 def time_inference(states, model):
     """Calculate average inference time given list of collected states"""
+    runs = []
     timer = Timer()
     with torch.no_grad():
         for state in states:
             timer.start()
             _ = model.infer_action(state)
-            timer.stop()
+            dt = timer.stop()
+            runs.append(dt)
     print(f'Average inference time {timer.get_average_time()*1000}ms calculated on {timer.get_laps()} frames')
-    return timer.get_average_time(), timer.get_laps()
+    return runs
 
+
+def log_runs(durations_list, dest_file):
+    """Save list of run durations into json"""
+    with open(dest_file, 'w') as f:
+        json.dump(durations_list, f)
