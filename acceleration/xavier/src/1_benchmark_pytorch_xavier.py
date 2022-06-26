@@ -11,13 +11,13 @@ if __name__ == "__main__":
     # Benchmark cpu inference
     model = Actor('cpu')
     model.load_state_dict(state_dict=torch.load('models/actor_state_dict.pt'))
-    dts = time_inference(states=states, model=model)
+    dts, _ = time_inference(states=states, model=model)
     log_runs(durations_list=dts, dest_file='results/xavier_pytorch_cpu.json')
 
     # Benchmark cuda inference
     model = Actor('cuda')
     model.load_state_dict(state_dict=torch.load('models/actor_state_dict.pt'))
-    dts = time_inference(states=states, model=model)
+    dts, _ = time_inference(states=states, model=model)
     log_runs(durations_list=dts, dest_file='results/xavier_pytorch_gpu.json')
 
     # Benchmark half precission model
@@ -28,5 +28,5 @@ if __name__ == "__main__":
     model = Actor('cuda')
     model.load_state_dict(state_dict=torch.load('models/actor_state_dict.pt'))
     model = model.half()
-    dts = time_inference(states=states, model=model)
+    dts, _ = time_inference(states=states, model=model)
     log_runs(durations_list=dts, dest_file='results/xavier_pytorch_gpu_fp16.json')

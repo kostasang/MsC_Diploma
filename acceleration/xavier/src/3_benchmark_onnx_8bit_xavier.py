@@ -9,15 +9,15 @@ if __name__ == "__main__":
 
     # Benchmark cpu inference
     model = ONNXActor(onnx_path='models/actor_8bit_dynamic.onnx', providers=['CPUExecutionProvider'])
-    dts = time_inference(states=states, model=model)
+    dts, _ = time_inference(states=states, model=model)
     log_runs(durations_list=dts, dest_file='results/xavier_onnx8bit_cpu.json')
 
     # Benchmark cuda inference
     model = ONNXActor(onnx_path='models/actor_8bit_dynamic.onnx', providers=['CUDAExecutionProvider'])
-    dts = time_inference(states=states, model=model)
+    dts, _ = time_inference(states=states, model=model)
     log_runs(durations_list=dts, dest_file='results/xavier_onnx8bit_gpu.json')
     
     # Benchmark tensorRT inference
     model = ONNXActor(onnx_path='models/actor_8bit_dynamic.onnx', providers=['TensorrtExecutionProvider'])
-    dts = time_inference(states=states, model=model)
+    dts, _ = time_inference(states=states, model=model)
     log_runs(durations_list=dts, dest_file='results/xavier_onnx8bit_tensorrt.json')
