@@ -71,5 +71,3 @@ model = ActorCritic()
 ppo= PPO(env, model, lr=1e-03, num_steps=150, max_frames=500_000, batch_size=4)
 rewards, n_frames, _, _ = ppo.run(early_stopping=False)
 ```
-
-## Model Acceleration
